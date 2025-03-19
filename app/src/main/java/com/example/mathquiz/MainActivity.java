@@ -121,9 +121,11 @@ public class MainActivity extends AppCompatActivity {
         if (selectedAnswerIndex == correctAnswers[currentQuestion]) {
             correctCount++;
             resultText.setText("Correct!");
+            selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             incorrectCount++;
             resultText.setText("Incorrect! The correct answer is: " + options[currentQuestion][correctAnswers[currentQuestion]]);
+            changeColorOnIncorrectAnswer();
         }
 
         currentQuestion++;
@@ -139,5 +141,31 @@ public class MainActivity extends AppCompatActivity {
         if (selectedOption == option3) return 2;
         if (selectedOption == option4) return 3;
         return -1;
+    }
+
+    private void changeColorOnIncorrectAnswer() {
+        if (option1.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option1.setBackgroundColor(getResources().getColor(R.color.green));
+        } else {
+            option1.setBackgroundColor(getResources().getColor(R.color.red));
+        }
+
+        if (option2.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option2.setBackgroundColor(getResources().getColor(R.color.green));
+        } else {
+            option2.setBackgroundColor(getResources().getColor(R.color.red));
+        }
+
+        if (option3.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option3.setBackgroundColor(getResources().getColor(R.color.green));
+        } else {
+            option3.setBackgroundColor(getResources().getColor(R.color.red));
+        }
+
+        if (option4.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option4.setBackgroundColor(getResources().getColor(R.color.green));
+        } else {
+            option4.setBackgroundColor(getResources().getColor(R.color.red));
+        }
     }
 }
