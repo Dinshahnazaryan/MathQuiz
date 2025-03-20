@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     private int currentQuestion = -1;
     private int correctCount = 0;
@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         resultText = findViewById(R.id.resultText);
 
         startBtn.setOnClickListener(v -> startQuiz());
-
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
     }
 
@@ -102,9 +101,18 @@ public class MainActivity extends AppCompatActivity {
             option4.setText(currentOptionsList.get(3));
 
             correctAnswers[currentQuestion] = currentOptionsList.indexOf(options[currentQuestion][0]);
+
+
+            option1.setBackgroundResource(R.drawable.radiobutton_selector);
+            option2.setBackgroundResource(R.drawable.radiobutton_selector);
+            option3.setBackgroundResource(R.drawable.radiobutton_selector);
+            option4.setBackgroundResource(R.drawable.radiobutton_selector);
+
+            answerOptions.clearCheck();
         } else {
             resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
             submitAnswerBtn.setVisibility(View.GONE);
+            answerOptions.setVisibility(View.GONE);
         }
     }
 
@@ -130,8 +138,9 @@ public class MainActivity extends AppCompatActivity {
 
         currentQuestion++;
         if (currentQuestion < questions.length) {
+            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000); // 1-second delay
+        } else {
             showNextQuestion();
-            answerOptions.clearCheck();
         }
     }
 

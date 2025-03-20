@@ -5,7 +5,7 @@
         android:allowBackup="true"
         android:icon="@drawable/button_selector"
         android:label="Math Quiz"
-        android:roundIcon="@drawable/button_selector"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MathQuiz">
 
