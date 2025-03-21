@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView splashText;
     private ProgressBar timerProgress;
     private LinearLayout splashLayout;
+    private CountDownTimer questionTimer;
 
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
@@ -93,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 questionText.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.VISIBLE);
                 resultText.setVisibility(View.VISIBLE);
+                timerProgress.setVisibility(View.GONE);
             }
         }.start();
     }
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setVisibility(View.GONE);
         answerOptions.setVisibility(View.VISIBLE);
         submitAnswerBtn.setVisibility(View.VISIBLE);
+        timerProgress.setVisibility(View.VISIBLE);
         showNextQuestion();
     }
 
@@ -132,11 +135,38 @@ public class MainActivity extends AppCompatActivity {
             option4.setBackgroundResource(R.drawable.radiobutton_selector);
 
             answerOptions.clearCheck();
+
+            startQuestionTimer();
         } else {
             resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
             submitAnswerBtn.setVisibility(View.GONE);
             answerOptions.setVisibility(View.GONE);
+            timerProgress.setVisibility(View.GONE);
+            if (questionTimer != null) {
+                questionTimer.cancel();
+            }
         }
+    }
+
+    private void startQuestionTimer() {
+        if (questionTimer != null) {
+            questionTimer.cancel();
+        }
+
+        questionTimer = new CountDownTimer(30000, 300) {
+            public void onTick(long millisUntilFinished) {
+                int progress = (int) ((30000 - millisUntilFinished) / 300);
+                timerProgress.setProgress(progress);
+            }
+
+            public void onFinish() {
+                incorrectCount++;
+                resultText.setText("Time's up! The correct answer was: " + options[currentQuestion][correctAnswers[currentQuestion]]);
+                changeColorOnIncorrectAnswer();
+                currentQuestion++;
+                showNextQuestion();
+            }
+        }.start();
     }
 
     private void submitAnswer() {
@@ -144,6 +174,10 @@ public class MainActivity extends AppCompatActivity {
         if (selectedId == -1) {
             Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        if (questionTimer != null) {
+            questionTimer.cancel();
         }
 
         RadioButton selectedOption = findViewById(selectedId);
@@ -160,11 +194,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         currentQuestion++;
-        if (currentQuestion < questions.length) {
-            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
-        } else {
-            showNextQuestion();
-        }
+        new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
     }
 
     private int getSelectedOptionIndex(RadioButton selectedOption) {
