@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="startBtn" type="id" />
+    <item name="resultText" type="id" />
+    <item name="submitAnswerBtn" type="id" />
+    <item name="option4" type="id" />
+    <item name="option3" type="id" />
+    <item name="option2" type="id" />
+    <item name="option1" type="id" />
+    <item name="answerOptions" type="id" />
+    <item name="questionText" type="id" />
+    <item name="timerProgress" type="id" />
+    <item name="splashText" type="id" />
+    <item name="splashLayout" type="id" />
+</resources>

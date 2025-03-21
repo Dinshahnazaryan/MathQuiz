@@ -1,8 +1,11 @@
 package com.example.mathquiz;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -19,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn;
     private TextView resultText;
+    private TextView splashText;
+    private ProgressBar timerProgress;
+    private LinearLayout splashLayout;
 
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
@@ -68,9 +74,27 @@ public class MainActivity extends AppCompatActivity {
         submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
         startBtn = findViewById(R.id.startBtn);
         resultText = findViewById(R.id.resultText);
+        splashText = findViewById(R.id.splashText);
+        timerProgress = findViewById(R.id.timerProgress);
+        splashLayout = findViewById(R.id.splashLayout);
 
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
+
+        timerProgress.setMax(100);
+
+        new CountDownTimer(10000, 100) {
+            public void onTick(long millisUntilFinished) {
+                int progress = (int) ((10000 - millisUntilFinished) / 100);
+                timerProgress.setProgress(progress);
+            }
+            public void onFinish() {
+                splashLayout.setVisibility(View.GONE);
+                questionText.setVisibility(View.VISIBLE);
+                startBtn.setVisibility(View.VISIBLE);
+                resultText.setVisibility(View.VISIBLE);
+            }
+        }.start();
     }
 
     private void startQuiz() {
@@ -101,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
             option4.setText(currentOptionsList.get(3));
 
             correctAnswers[currentQuestion] = currentOptionsList.indexOf(options[currentQuestion][0]);
-
 
             option1.setBackgroundResource(R.drawable.radiobutton_selector);
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
@@ -138,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
         currentQuestion++;
         if (currentQuestion < questions.length) {
-            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000); // 1-second delay
+            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
         } else {
             showNextQuestion();
         }
