@@ -20,10 +20,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView questionText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
-    private Button submitAnswerBtn, startBtn;
+    private Button submitAnswerBtn, startBtn, homeBtn;
     private TextView resultText;
     private TextView splashText;
-    private ProgressBar timerProgress;
+    private ProgressBar timerProgress, splashProgress;
     private LinearLayout splashLayout;
     private CountDownTimer questionTimer;
 
@@ -74,27 +74,29 @@ public class MainActivity extends AppCompatActivity {
         option4 = findViewById(R.id.option4);
         submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
         startBtn = findViewById(R.id.startBtn);
+        homeBtn = findViewById(R.id.homeBtn);
         resultText = findViewById(R.id.resultText);
         splashText = findViewById(R.id.splashText);
         timerProgress = findViewById(R.id.timerProgress);
+        splashProgress = findViewById(R.id.splashProgress);
         splashLayout = findViewById(R.id.splashLayout);
 
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
+        homeBtn.setOnClickListener(v -> returnToStart());
 
-        timerProgress.setMax(100);
+        splashProgress.setMax(100);
 
         new CountDownTimer(10000, 100) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((10000 - millisUntilFinished) / 100);
-                timerProgress.setProgress(progress);
+                splashProgress.setProgress(progress);
             }
             public void onFinish() {
                 splashLayout.setVisibility(View.GONE);
                 questionText.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.VISIBLE);
                 resultText.setVisibility(View.VISIBLE);
-                timerProgress.setVisibility(View.GONE);
             }
         }.start();
     }
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         incorrectCount = 0;
         resultText.setText("");
         startBtn.setVisibility(View.GONE);
+        homeBtn.setVisibility(View.GONE);
         answerOptions.setVisibility(View.VISIBLE);
         submitAnswerBtn.setVisibility(View.VISIBLE);
         timerProgress.setVisibility(View.VISIBLE);
@@ -142,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
             submitAnswerBtn.setVisibility(View.GONE);
             answerOptions.setVisibility(View.GONE);
             timerProgress.setVisibility(View.GONE);
+            homeBtn.setVisibility(View.VISIBLE);
             if (questionTimer != null) {
                 questionTimer.cancel();
             }
@@ -153,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             questionTimer.cancel();
         }
 
+        timerProgress.setMax(100);
         questionTimer = new CountDownTimer(30000, 300) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((30000 - millisUntilFinished) / 300);
@@ -229,5 +234,21 @@ public class MainActivity extends AppCompatActivity {
         } else {
             option4.setBackgroundColor(getResources().getColor(R.color.red));
         }
+    }
+
+    private void returnToStart() {
+        questionText.setText("Press Start to begin the quiz");
+        questionText.setVisibility(View.VISIBLE);
+        startBtn.setVisibility(View.VISIBLE);
+        resultText.setText("");
+        resultText.setVisibility(View.VISIBLE);
+        splashLayout.setVisibility(View.GONE);
+        answerOptions.setVisibility(View.GONE);
+        submitAnswerBtn.setVisibility(View.GONE);
+        timerProgress.setVisibility(View.GONE);
+        homeBtn.setVisibility(View.GONE);
+        currentQuestion = -1;
+        correctCount = 0;
+        incorrectCount = 0;
     }
 }

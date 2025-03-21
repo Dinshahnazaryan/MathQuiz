@@ -10,16 +10,9 @@
         android:id="@+id/splashLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:gravity="center"
         android:visibility="visible">
-
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="16dp"
-            android:src="@mipmap/ic_launcher"/>
 
         <TextView
             android:id="@+id/splashText"
@@ -30,6 +23,15 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:textAlignment="center"/>
+
+        <ProgressBar
+            android:id="@+id/splashProgress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:progressTint="#FFFFFF"
+            android:visibility="visible"/>
     </LinearLayout>
 
     <ProgressBar
@@ -67,7 +69,7 @@
             android:text="Option 1"
             android:textSize="18sp"
             android:padding="10dp"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A237E"
             android:layout_marginBottom="10dp"
             android:background="@drawable/radiobutton_selector"/>
 
@@ -78,7 +80,7 @@
             android:text="Option 2"
             android:textSize="18sp"
             android:padding="10dp"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A237E"
             android:layout_marginBottom="10dp"
             android:background="@drawable/radiobutton_selector"/>
 
@@ -89,7 +91,7 @@
             android:text="Option 3"
             android:textSize="18sp"
             android:padding="10dp"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A237E"
             android:layout_marginBottom="10dp"
             android:background="@drawable/radiobutton_selector"/>
 
@@ -100,7 +102,7 @@
             android:text="Option 4"
             android:textSize="18sp"
             android:padding="10dp"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A237E"
             android:layout_marginBottom="20dp"
             android:background="@drawable/radiobutton_selector"/>
     </RadioGroup>
@@ -114,7 +116,7 @@
         android:layout_marginTop="16dp"
         android:padding="12dp"
         android:background="@drawable/button_selector"
-        android:textColor="#FFFFFF"
+        android:textColor="#1A237E"
         android:visibility="gone"/>
 
     <Button
@@ -125,7 +127,7 @@
         android:textSize="18sp"
         android:padding="12dp"
         android:background="@drawable/button_selector"
-        android:textColor="#FFFFFF"
+        android:textColor="#1A237E"
         android:layout_marginTop="16dp"
         android:visibility="gone"/>
 
@@ -138,5 +140,17 @@
         android:textColor="#FFFFFF"
         android:layout_marginTop="24dp"
         android:textAlignment="center"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/homeBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Home"
+        android:textSize="18sp"
+        android:padding="12dp"
+        android:background="@drawable/button_selector"
+        android:textColor="#1A237E"
+        android:layout_marginTop="16dp"
         android:visibility="gone"/>
 </LinearLayout>
