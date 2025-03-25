@@ -143,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
             option3.setBackgroundResource(R.drawable.radiobutton_selector);
             option4.setBackgroundResource(R.drawable.radiobutton_selector);
+            option1.setVisibility(View.VISIBLE);
+            option2.setVisibility(View.VISIBLE);
+            option3.setVisibility(View.VISIBLE);
+            option4.setVisibility(View.VISIBLE);
 
             answerOptions.clearCheck();
 
@@ -174,10 +178,10 @@ public class MainActivity extends AppCompatActivity {
 
             public void onFinish() {
                 incorrectCount++;
-                resultText.setText("Time's up! The correct answer was: " + options[currentQuestion][correctAnswers[currentQuestion]]);
-                changeColorOnIncorrectAnswer();
+                resultText.setText("");
+                changeColorOnTimeUp();
                 currentQuestion++;
-                showNextQuestion();
+                new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
             }
         }.start();
     }
@@ -203,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             incorrectCount++;
             resultText.setText("Incorrect! The correct answer is: " + options[currentQuestion][correctAnswers[currentQuestion]]);
-            changeColorOnIncorrectAnswer();
+            changeColorOnIncorrectAnswer(selectedOption);
         }
 
         currentQuestion++;
@@ -218,29 +222,63 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
-    private void changeColorOnIncorrectAnswer() {
+    private void changeColorOnTimeUp() {
         if (option1.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
             option1.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
-            option1.setBackgroundColor(getResources().getColor(R.color.red));
+            option1.setVisibility(View.GONE);
         }
 
         if (option2.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
             option2.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
-            option2.setBackgroundColor(getResources().getColor(R.color.red));
+            option2.setVisibility(View.GONE);
         }
 
         if (option3.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
             option3.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
-            option3.setBackgroundColor(getResources().getColor(R.color.red));
+            option3.setVisibility(View.GONE);
         }
 
         if (option4.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
             option4.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
+            option4.setVisibility(View.GONE);
+        }
+    }
+
+    private void changeColorOnIncorrectAnswer(RadioButton selectedOption) {
+        if (option1.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option1.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (option1 == selectedOption) {
+            option1.setBackgroundColor(getResources().getColor(R.color.red));
+        } else {
+            option1.setVisibility(View.GONE);
+        }
+
+        if (option2.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option2.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (option2 == selectedOption) {
+            option2.setBackgroundColor(getResources().getColor(R.color.red));
+        } else {
+            option2.setVisibility(View.GONE);
+        }
+
+        if (option3.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option3.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (option3 == selectedOption) {
+            option3.setBackgroundColor(getResources().getColor(R.color.red));
+        } else {
+            option3.setVisibility(View.GONE);
+        }
+
+        if (option4.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+            option4.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (option4 == selectedOption) {
             option4.setBackgroundColor(getResources().getColor(R.color.red));
+        } else {
+            option4.setVisibility(View.GONE);
         }
     }
 
