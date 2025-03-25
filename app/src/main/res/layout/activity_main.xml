@@ -34,6 +34,17 @@
             android:visibility="visible"/>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/questionProgressText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0/11"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:textAlignment="center"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"/>
+
     <ProgressBar
         android:id="@+id/timerProgress"
         style="@android:style/Widget.ProgressBar.Horizontal"

@@ -1,5 +1,6 @@
 package com.example.mathquiz;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
@@ -17,6 +18,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private TextView questionProgressText;
     private TextView questionText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
@@ -61,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
     private int correctCount = 0;
     private int incorrectCount = 0;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
         option1 = findViewById(R.id.option1);
@@ -111,12 +115,15 @@ public class MainActivity extends AppCompatActivity {
         answerOptions.setVisibility(View.VISIBLE);
         submitAnswerBtn.setVisibility(View.VISIBLE);
         timerProgress.setVisibility(View.VISIBLE);
+        questionProgressText.setVisibility(View.VISIBLE);
+        updateQuestionProgress();
         showNextQuestion();
     }
 
     private void showNextQuestion() {
         if (currentQuestion < questions.length) {
             questionText.setText(questions[currentQuestion]);
+            updateQuestionProgress();
 
             List<String> currentOptionsList = new ArrayList<>();
             for (String option : options[currentQuestion]) {
@@ -145,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
             submitAnswerBtn.setVisibility(View.GONE);
             answerOptions.setVisibility(View.GONE);
             timerProgress.setVisibility(View.GONE);
+            questionProgressText.setVisibility(View.GONE);
             homeBtn.setVisibility(View.VISIBLE);
             if (questionTimer != null) {
                 questionTimer.cancel();
@@ -246,9 +254,14 @@ public class MainActivity extends AppCompatActivity {
         answerOptions.setVisibility(View.GONE);
         submitAnswerBtn.setVisibility(View.GONE);
         timerProgress.setVisibility(View.GONE);
+        questionProgressText.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
         currentQuestion = -1;
         correctCount = 0;
         incorrectCount = 0;
+    }
+
+    private void updateQuestionProgress() {
+        questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
     }
 }
