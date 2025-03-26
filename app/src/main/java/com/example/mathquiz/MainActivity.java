@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] correctAnswers = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     private int currentQuestion = -1;
     private int correctCount = 0;
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
 
-            correctAnswers[currentQuestion] = currentOptionsList.indexOf(options[currentQuestion][0]);
+            correctAnswers[currentQuestion] = currentOptionsList.indexOf(options[currentQuestion][correctAnswers[currentQuestion]]);
 
             option1.setBackgroundResource(R.drawable.radiobutton_selector);
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             answerOptions.setVisibility(View.GONE);
             timerProgress.setVisibility(View.GONE);
             questionProgressText.setVisibility(View.GONE);
+            questionText.setVisibility(View.GONE);
             homeBtn.setVisibility(View.VISIBLE);
             if (questionTimer != null) {
                 questionTimer.cancel();
@@ -210,8 +211,18 @@ public class MainActivity extends AppCompatActivity {
             changeColorOnIncorrectAnswer(selectedOption);
         }
 
-        currentQuestion++;
-        new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
+        if (currentQuestion == questions.length - 1) {
+            resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
+            submitAnswerBtn.setVisibility(View.GONE);
+            answerOptions.setVisibility(View.GONE);
+            timerProgress.setVisibility(View.GONE);
+            questionProgressText.setVisibility(View.GONE);
+            questionText.setVisibility(View.GONE);
+            homeBtn.setVisibility(View.VISIBLE);
+        } else {
+            currentQuestion++;
+            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
+        }
     }
 
     private int getSelectedOptionIndex(RadioButton selectedOption) {
