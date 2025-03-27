@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Уже соответствует options
 
     private int currentQuestion = -1;
     private int correctCount = 0;
@@ -145,7 +145,9 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
 
-            correctAnswers[currentQuestion] = currentOptionsList.indexOf(options[currentQuestion][correctAnswers[currentQuestion]]);
+            int originalCorrectIndex = correctAnswers[currentQuestion];
+            String correctAnswerText = options[currentQuestion][originalCorrectIndex];
+            correctAnswers[currentQuestion] = currentOptionsList.indexOf(correctAnswerText);
 
             option1.setBackgroundResource(R.drawable.radiobutton_selector);
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
@@ -160,31 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
             startQuestionTimer();
         } else {
-            resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
-            if (correctCount >= 0 && correctCount <= 3) {
-                gradeText.setText("Bad");
-                gradeEmoji.setImageResource(R.drawable.bad);
-            } else if (correctCount >= 4 && correctCount <= 6) {
-                gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.norm);
-            } else if (correctCount >= 7 && correctCount <= 10) {
-                gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.good);
-            } else {
-                gradeText.setText("Excellent");
-                gradeEmoji.setImageResource(R.drawable.excellent);
-            }
-            gradeText.setVisibility(View.VISIBLE);
-            gradeEmoji.setVisibility(View.VISIBLE);
-            submitAnswerBtn.setVisibility(View.GONE);
-            answerOptions.setVisibility(View.GONE);
-            timerProgress.setVisibility(View.GONE);
-            questionProgressText.setVisibility(View.GONE);
-            questionText.setVisibility(View.GONE);
-            homeBtn.setVisibility(View.VISIBLE);
-            if (questionTimer != null) {
-                questionTimer.cancel();
-            }
+            showResults();
         }
     }
 
@@ -234,33 +212,33 @@ public class MainActivity extends AppCompatActivity {
             changeColorOnIncorrectAnswer(selectedOption);
         }
 
-        if (currentQuestion == questions.length - 1) {
-            resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
-            if (correctCount >= 0 && correctCount <= 3) {
-                gradeText.setText("Bad");
-                gradeEmoji.setImageResource(R.drawable.bad);
-            } else if (correctCount >= 4 && correctCount <= 6) {
-                gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.norm);
-            } else if (correctCount >= 7 && correctCount <= 10) {
-                gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.good);
-            } else {
-                gradeText.setText("Excellent");
-                gradeEmoji.setImageResource(R.drawable.excellent);
-            }
-            gradeText.setVisibility(View.VISIBLE);
-            gradeEmoji.setVisibility(View.VISIBLE);
-            submitAnswerBtn.setVisibility(View.GONE);
-            answerOptions.setVisibility(View.GONE);
-            timerProgress.setVisibility(View.GONE);
-            questionProgressText.setVisibility(View.GONE);
-            questionText.setVisibility(View.GONE);
-            homeBtn.setVisibility(View.VISIBLE);
+        currentQuestion++;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
+    }
+
+    private void showResults() {
+        resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
+        if (correctCount <= 3) {
+            gradeText.setText("Bad");
+            gradeEmoji.setImageResource(R.drawable.bad);
+        } else if (correctCount <= 6) {
+            gradeText.setText("Normal");
+            gradeEmoji.setImageResource(R.drawable.norm);
+        } else if (correctCount <= 10) {
+            gradeText.setText("Good");
+            gradeEmoji.setImageResource(R.drawable.good);
         } else {
-            currentQuestion++;
-            new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
+            gradeText.setText("Excellent");
+            gradeEmoji.setImageResource(R.drawable.excellent);
         }
+        gradeText.setVisibility(View.VISIBLE);
+        gradeEmoji.setVisibility(View.VISIBLE);
+        submitAnswerBtn.setVisibility(View.GONE);
+        answerOptions.setVisibility(View.GONE);
+        timerProgress.setVisibility(View.GONE);
+        questionProgressText.setVisibility(View.GONE);
+        questionText.setVisibility(View.GONE);
+        homeBtn.setVisibility(View.VISIBLE);
     }
 
     private int getSelectedOptionIndex(RadioButton selectedOption) {
