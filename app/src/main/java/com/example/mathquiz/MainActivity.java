@@ -3,8 +3,11 @@ package com.example.mathquiz;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
@@ -28,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout splashLayout;
     private CountDownTimer questionTimer;
+    private TextView gradeText;
+    private ImageView gradeEmoji;
 
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
@@ -57,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     private int currentQuestion = -1;
     private int correctCount = 0;
@@ -84,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         timerProgress = findViewById(R.id.timerProgress);
         splashProgress = findViewById(R.id.splashProgress);
         splashLayout = findViewById(R.id.splashLayout);
+        gradeText = findViewById(R.id.gradeText);
+        gradeEmoji = findViewById(R.id.gradeEmoji);
 
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
@@ -110,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         correctCount = 0;
         incorrectCount = 0;
         resultText.setText("");
+        gradeText.setText("");
         startBtn.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
         answerOptions.setVisibility(View.VISIBLE);
@@ -153,6 +161,21 @@ public class MainActivity extends AppCompatActivity {
             startQuestionTimer();
         } else {
             resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
+            if (correctCount >= 0 && correctCount <= 3) {
+                gradeText.setText("Bad");
+                gradeEmoji.setImageResource(R.drawable.bad);
+            } else if (correctCount >= 4 && correctCount <= 6) {
+                gradeText.setText("Normal");
+                gradeEmoji.setImageResource(R.drawable.norm);
+            } else if (correctCount >= 7 && correctCount <= 10) {
+                gradeText.setText("Good");
+                gradeEmoji.setImageResource(R.drawable.good);
+            } else {
+                gradeText.setText("Excellent");
+                gradeEmoji.setImageResource(R.drawable.excellent);
+            }
+            gradeText.setVisibility(View.VISIBLE);
+            gradeEmoji.setVisibility(View.VISIBLE);
             submitAnswerBtn.setVisibility(View.GONE);
             answerOptions.setVisibility(View.GONE);
             timerProgress.setVisibility(View.GONE);
@@ -182,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                 resultText.setText("");
                 changeColorOnTimeUp();
                 currentQuestion++;
-                new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
             }
         }.start();
     }
@@ -213,6 +236,21 @@ public class MainActivity extends AppCompatActivity {
 
         if (currentQuestion == questions.length - 1) {
             resultText.setText("Quiz Completed! Correct answers: " + correctCount + ", Incorrect answers: " + incorrectCount);
+            if (correctCount >= 0 && correctCount <= 3) {
+                gradeText.setText("Bad");
+                gradeEmoji.setImageResource(R.drawable.bad);
+            } else if (correctCount >= 4 && correctCount <= 6) {
+                gradeText.setText("Normal");
+                gradeEmoji.setImageResource(R.drawable.norm);
+            } else if (correctCount >= 7 && correctCount <= 10) {
+                gradeText.setText("Good");
+                gradeEmoji.setImageResource(R.drawable.good);
+            } else {
+                gradeText.setText("Excellent");
+                gradeEmoji.setImageResource(R.drawable.excellent);
+            }
+            gradeText.setVisibility(View.VISIBLE);
+            gradeEmoji.setVisibility(View.VISIBLE);
             submitAnswerBtn.setVisibility(View.GONE);
             answerOptions.setVisibility(View.GONE);
             timerProgress.setVisibility(View.GONE);
@@ -221,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
             homeBtn.setVisibility(View.VISIBLE);
         } else {
             currentQuestion++;
-            new android.os.Handler().postDelayed(() -> showNextQuestion(), 1000);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
         }
     }
 
@@ -298,7 +336,10 @@ public class MainActivity extends AppCompatActivity {
         questionText.setVisibility(View.VISIBLE);
         startBtn.setVisibility(View.VISIBLE);
         resultText.setText("");
+        gradeText.setText("");
         resultText.setVisibility(View.VISIBLE);
+        gradeText.setVisibility(View.GONE);
+        gradeEmoji.setVisibility(View.GONE);
         splashLayout.setVisibility(View.GONE);
         answerOptions.setVisibility(View.GONE);
         submitAnswerBtn.setVisibility(View.GONE);
