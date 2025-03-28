@@ -1,208 +1,215 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center"
     android:background="@color/dark_blue">
-
-    <LinearLayout
-        android:id="@+id/splashLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="visible">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/splashIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_math_quiz"
-                android:contentDescription="Math Quiz Icon" />
-
-            <TextView
-                android:id="@+id/splashText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MathQuiz"
-                android:textSize="36sp"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:textAlignment="center"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/splashProgress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:progressTint="#FFFFFF"
-            android:visibility="visible"/>
-    </LinearLayout>
 
     <TextView
         android:id="@+id/questionProgressText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0/11"
-        android:textSize="18sp"
+        android:textSize="24sp"
         android:textColor="#FFFFFF"
-        android:textAlignment="center"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone"/>
-
-    <ProgressBar
-        android:id="@+id/timerProgress"
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:progressTint="#FFFFFF"
-        android:visibility="gone"/>
-
-    <TextView
-        android:id="@+id/questionText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Press Start to begin the quiz"
-        android:textSize="22sp"
-        android:textColor="#FFFFFF"
-        android:textAlignment="center"
-        android:layout_marginBottom="32dp"
-        android:visibility="gone"/>
-
-    <RadioGroup
-        android:id="@+id/answerOptions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone"
-        android:layout_marginBottom="16dp">
-
-        <RadioButton
-            android:id="@+id/option1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Option 1"
-            android:textSize="18sp"
-            android:padding="10dp"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/radiobutton_selector"/>
-
-        <RadioButton
-            android:id="@+id/option2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Option 2"
-            android:textSize="18sp"
-            android:padding="10dp"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/radiobutton_selector"/>
-
-        <RadioButton
-            android:id="@+id/option3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Option 3"
-            android:textSize="18sp"
-            android:padding="10dp"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/radiobutton_selector"/>
-
-        <RadioButton
-            android:id="@+id/option4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Option 4"
-            android:textSize="18sp"
-            android:padding="10dp"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/radiobutton_selector"/>
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/submitAnswerBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Submit Answer"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp"
-        android:padding="12dp"
-        android:background="@drawable/button_selector"
-        android:textColor="#1A237E"
-        android:visibility="gone"/>
-
-    <Button
-        android:id="@+id/startBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Quiz"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="@drawable/button_selector"
-        android:textColor="#1A237E"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"/>
-
-    <TextView
-        android:id="@+id/resultText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="20sp"
-        android:textColor="#FFFFFF"
-        android:layout_marginTop="24dp"
-        android:textAlignment="center"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="8dp"
         android:visibility="gone"/>
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginTop="16dp">
+        android:gravity="center">
+
+        <LinearLayout
+            android:id="@+id/splashLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/splashIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_math_quiz"
+                    android:contentDescription="Math Quiz Icon" />
+
+                <TextView
+                    android:id="@+id/splashText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MathQuiz"
+                    android:textSize="36sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/splashProgress"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:progressTint="#FFFFFF"
+                android:visibility="visible"/>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/timerProgress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:progressTint="#FFFFFF"
+            android:visibility="gone"/>
 
         <TextView
-            android:id="@+id/gradeText"
+            android:id="@+id/questionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Press Start to begin the quiz"
+            android:textSize="22sp"
+            android:textColor="#FFFFFF"
+            android:textAlignment="center"
+            android:layout_marginBottom="32dp"
+            android:visibility="gone"/>
+
+        <RadioGroup
+            android:id="@+id/answerOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/option1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Option 1"
+                android:textSize="18sp"
+                android:padding="10dp"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/radiobutton_selector"/>
+
+            <RadioButton
+                android:id="@+id/option2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Option 2"
+                android:textSize="18sp"
+                android:padding="10dp"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/radiobutton_selector"/>
+
+            <RadioButton
+                android:id="@+id/option3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Option 3"
+                android:textSize="18sp"
+                android:padding="10dp"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/radiobutton_selector"/>
+
+            <RadioButton
+                android:id="@+id/option4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Option 4"
+                android:textSize="18sp"
+                android:padding="10dp"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/radiobutton_selector"/>
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/submitAnswerBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit Answer"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:padding="12dp"
+            android:background="@drawable/button_selector"
+            android:textColor="#1A237E"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/startBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Quiz"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:background="@drawable/button_selector"
+            android:textColor="#1A237E"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:id="@+id/gradeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="30sp"
+                android:textColor="#FFFFFF"
+                android:textAlignment="center"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/gradeEmoji"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:contentDescription="Grade Emoji"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/resultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="30sp"
+            android:textSize="20sp"
             android:textColor="#FFFFFF"
+            android:layout_marginTop="24dp"
             android:textAlignment="center"
             android:visibility="gone"/>
 
-        <ImageView
-            android:id="@+id/gradeEmoji"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:contentDescription="Grade Emoji"
+        <Button
+            android:id="@+id/homeBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:background="@drawable/button_selector"
+            android:textColor="#1A237E"
+            android:layout_marginTop="16dp"
             android:visibility="gone"/>
     </LinearLayout>
-
-    <Button
-        android:id="@+id/homeBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Home"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="@drawable/button_selector"
-        android:textColor="#1A237E"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"/>
-</LinearLayout>
+</RelativeLayout>

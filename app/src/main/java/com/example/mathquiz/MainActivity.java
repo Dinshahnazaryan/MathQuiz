@@ -62,11 +62,12 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Уже соответствует options
+    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     private int currentQuestion = -1;
     private int correctCount = 0;
     private int incorrectCount = 0;
+    private String currentCorrectAnswer;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -145,9 +146,7 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
 
-            int originalCorrectIndex = correctAnswers[currentQuestion];
-            String correctAnswerText = options[currentQuestion][originalCorrectIndex];
-            correctAnswers[currentQuestion] = currentOptionsList.indexOf(correctAnswerText);
+            currentCorrectAnswer = options[currentQuestion][correctAnswers[currentQuestion]];
 
             option1.setBackgroundResource(R.drawable.radiobutton_selector);
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
@@ -200,15 +199,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         RadioButton selectedOption = findViewById(selectedId);
-        int selectedAnswerIndex = getSelectedOptionIndex(selectedOption);
+        String selectedAnswerText = selectedOption.getText().toString();
 
-        if (selectedAnswerIndex == correctAnswers[currentQuestion]) {
+        if (selectedAnswerText.equals(currentCorrectAnswer)) {
             correctCount++;
             resultText.setText("Correct!");
             selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             incorrectCount++;
-            resultText.setText("Incorrect! The correct answer is: " + options[currentQuestion][correctAnswers[currentQuestion]]);
+            resultText.setText("Incorrect! The correct answer is: " + currentCorrectAnswer);
             changeColorOnIncorrectAnswer(selectedOption);
         }
 
@@ -250,25 +249,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeColorOnTimeUp() {
-        if (option1.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option1.getText().toString().equals(currentCorrectAnswer)) {
             option1.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             option1.setVisibility(View.GONE);
         }
 
-        if (option2.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option2.getText().toString().equals(currentCorrectAnswer)) {
             option2.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             option2.setVisibility(View.GONE);
         }
 
-        if (option3.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option3.getText().toString().equals(currentCorrectAnswer)) {
             option3.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             option3.setVisibility(View.GONE);
         }
 
-        if (option4.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option4.getText().toString().equals(currentCorrectAnswer)) {
             option4.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             option4.setVisibility(View.GONE);
@@ -276,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeColorOnIncorrectAnswer(RadioButton selectedOption) {
-        if (option1.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option1.getText().toString().equals(currentCorrectAnswer)) {
             option1.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (option1 == selectedOption) {
             option1.setBackgroundColor(getResources().getColor(R.color.red));
@@ -284,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             option1.setVisibility(View.GONE);
         }
 
-        if (option2.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option2.getText().toString().equals(currentCorrectAnswer)) {
             option2.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (option2 == selectedOption) {
             option2.setBackgroundColor(getResources().getColor(R.color.red));
@@ -292,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
             option2.setVisibility(View.GONE);
         }
 
-        if (option3.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option3.getText().toString().equals(currentCorrectAnswer)) {
             option3.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (option3 == selectedOption) {
             option3.setBackgroundColor(getResources().getColor(R.color.red));
@@ -300,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
             option3.setVisibility(View.GONE);
         }
 
-        if (option4.getText().equals(options[currentQuestion][correctAnswers[currentQuestion]])) {
+        if (option4.getText().toString().equals(currentCorrectAnswer)) {
             option4.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (option4 == selectedOption) {
             option4.setBackgroundColor(getResources().getColor(R.color.red));
