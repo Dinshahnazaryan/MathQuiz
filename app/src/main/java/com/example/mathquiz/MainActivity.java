@@ -114,6 +114,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startQuiz() {
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < questions.length; i++) {
+            indices.add(i);
+        }
+        Collections.shuffle(indices);
+
+        String[] shuffledQuestions = new String[questions.length];
+        String[][] shuffledOptions = new String[options.length][];
+        int[] shuffledCorrectAnswers = new int[correctAnswers.length];
+
+        for (int i = 0; i < indices.size(); i++) {
+            int index = indices.get(i);
+            shuffledQuestions[i] = questions[index];
+            shuffledOptions[i] = options[index];
+            shuffledCorrectAnswers[i] = correctAnswers[index];
+        }
+
+        questions = shuffledQuestions;
+        options = shuffledOptions;
+        correctAnswers = shuffledCorrectAnswers;
+
         currentQuestion = 0;
         correctCount = 0;
         incorrectCount = 0;
