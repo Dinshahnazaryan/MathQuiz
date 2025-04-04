@@ -12,4 +12,6 @@
     <item name="timerProgress" type="id" />
     <item name="splashText" type="id" />
     <item name="splashLayout" type="id" />
+    <item name="loginBtn" type="id" />
+    <item name="registerLink" type="id" />
 </resources>

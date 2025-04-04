@@ -1,6 +1,8 @@
 package com.example.mathquiz;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -75,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        if (!prefs.contains("logged_in_user")) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -98,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
         homeBtn.setOnClickListener(v -> returnToStart());
 
         splashProgress.setMax(100);
-
         new CountDownTimer(10000, 100) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((10000 - millisUntilFinished) / 100);
@@ -330,23 +339,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void returnToStart() {
-        questionText.setText("Press Start to begin the quiz");
-        questionText.setVisibility(View.VISIBLE);
-        startBtn.setVisibility(View.VISIBLE);
-        resultText.setText("");
-        gradeText.setText("");
-        resultText.setVisibility(View.VISIBLE);
-        gradeText.setVisibility(View.GONE);
-        gradeEmoji.setVisibility(View.GONE);
-        splashLayout.setVisibility(View.GONE);
-        answerOptions.setVisibility(View.GONE);
-        submitAnswerBtn.setVisibility(View.GONE);
-        timerProgress.setVisibility(View.GONE);
-        questionProgressText.setVisibility(View.GONE);
-        homeBtn.setVisibility(View.GONE);
-        currentQuestion = -1;
-        correctCount = 0;
-        incorrectCount = 0;
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("logged_in_user");
+        editor.apply();
+
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void updateQuestionProgress() {
