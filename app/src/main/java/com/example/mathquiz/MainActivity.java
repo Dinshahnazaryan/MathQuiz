@@ -17,9 +17,13 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private CountDownTimer questionTimer;
     private TextView gradeText;
     private ImageView gradeEmoji;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
@@ -64,7 +70,19 @@ public class MainActivity extends AppCompatActivity {
             {"7", "9", "11", "13"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private String[] correctAnswersText = {
+            "446",
+            "788",
+            "400",
+            "11",
+            "65",
+            "410",
+            "12",
+            "5",
+            "0",
+            "0",
+            "7"
+    };
 
     private int currentQuestion = -1;
     private int correctCount = 0;
@@ -76,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth = FirebaseAuth.getInstance();
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         if (!prefs.contains("logged_in_user")) {
@@ -108,9 +128,9 @@ public class MainActivity extends AppCompatActivity {
         homeBtn.setOnClickListener(v -> returnToStart());
 
         splashProgress.setMax(100);
-        new CountDownTimer(10000, 100) {
+        new CountDownTimer(3000, 30) {
             public void onTick(long millisUntilFinished) {
-                int progress = (int) ((10000 - millisUntilFinished) / 100);
+                int progress = (int) ((3000 - millisUntilFinished) / 30);
                 splashProgress.setProgress(progress);
             }
             public void onFinish() {
@@ -131,24 +151,25 @@ public class MainActivity extends AppCompatActivity {
 
         String[] shuffledQuestions = new String[questions.length];
         String[][] shuffledOptions = new String[options.length][];
-        int[] shuffledCorrectAnswers = new int[correctAnswers.length];
+        String[] shuffledCorrectAnswersText = new String[correctAnswersText.length];
 
         for (int i = 0; i < indices.size(); i++) {
             int index = indices.get(i);
             shuffledQuestions[i] = questions[index];
             shuffledOptions[i] = options[index];
-            shuffledCorrectAnswers[i] = correctAnswers[index];
+            shuffledCorrectAnswersText[i] = correctAnswersText[index];
         }
 
         questions = shuffledQuestions;
         options = shuffledOptions;
-        correctAnswers = shuffledCorrectAnswers;
+        correctAnswersText = shuffledCorrectAnswersText;
 
         currentQuestion = 0;
         correctCount = 0;
         incorrectCount = 0;
         resultText.setText("");
         gradeText.setText("");
+        gradeEmoji.setVisibility(View.GONE);
         startBtn.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
         answerOptions.setVisibility(View.VISIBLE);
@@ -168,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
             for (String option : options[currentQuestion]) {
                 currentOptionsList.add(option);
             }
-
             Collections.shuffle(currentOptionsList);
 
             option1.setText(currentOptionsList.get(0));
@@ -176,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
 
-            currentCorrectAnswer = options[currentQuestion][correctAnswers[currentQuestion]];
+            currentCorrectAnswer = correctAnswersText[currentQuestion];
 
             option1.setBackgroundResource(R.drawable.radiobutton_selector);
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
@@ -201,18 +221,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         timerProgress.setMax(100);
-        questionTimer = new CountDownTimer(30000, 300) {
+        questionTimer = new CountDownTimer(15000, 150) {
             public void onTick(long millisUntilFinished) {
-                int progress = (int) ((30000 - millisUntilFinished) / 300);
+                int progress = (int) ((15000 - millisUntilFinished) / 150);
                 timerProgress.setProgress(progress);
             }
 
             public void onFinish() {
                 incorrectCount++;
-                resultText.setText("");
-                changeColorOnTimeUp();
+                resultText.setText("Time's up! The correct answer is: " + currentCorrectAnswer);
+                highlightCorrectAnswer();
                 currentQuestion++;
-                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
             }
         }.start();
     }
@@ -238,11 +258,27 @@ public class MainActivity extends AppCompatActivity {
         } else {
             incorrectCount++;
             resultText.setText("Incorrect! The correct answer is: " + currentCorrectAnswer);
-            changeColorOnIncorrectAnswer(selectedOption);
+            selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
+            highlightCorrectAnswer();
         }
 
         currentQuestion++;
-        new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
+    }
+
+    private void highlightCorrectAnswer() {
+        if (option1.getText().toString().equals(currentCorrectAnswer)) {
+            option1.setBackgroundColor(getResources().getColor(R.color.green));
+        }
+        if (option2.getText().toString().equals(currentCorrectAnswer)) {
+            option2.setBackgroundColor(getResources().getColor(R.color.green));
+        }
+        if (option3.getText().toString().equals(currentCorrectAnswer)) {
+            option3.setBackgroundColor(getResources().getColor(R.color.green));
+        }
+        if (option4.getText().toString().equals(currentCorrectAnswer)) {
+            option4.setBackgroundColor(getResources().getColor(R.color.green));
+        }
     }
 
     private void showResults() {
@@ -268,77 +304,22 @@ public class MainActivity extends AppCompatActivity {
         questionProgressText.setVisibility(View.GONE);
         questionText.setVisibility(View.GONE);
         homeBtn.setVisibility(View.VISIBLE);
-    }
 
-    private int getSelectedOptionIndex(RadioButton selectedOption) {
-        if (selectedOption == option1) return 0;
-        if (selectedOption == option2) return 1;
-        if (selectedOption == option3) return 2;
-        if (selectedOption == option4) return 3;
-        return -1;
-    }
+        String userId;
+        userId = mAuth.getCurrentUser().getUid();
+        Map<String, Object> scoreData = new HashMap<>();
+        scoreData.put("correct", correctCount);
+        scoreData.put("incorrect", incorrectCount);
+        scoreData.put("timestamp", System.currentTimeMillis());
 
-    private void changeColorOnTimeUp() {
-        if (option1.getText().toString().equals(currentCorrectAnswer)) {
-            option1.setBackgroundColor(getResources().getColor(R.color.green));
-        } else {
-            option1.setVisibility(View.GONE);
-        }
-
-        if (option2.getText().toString().equals(currentCorrectAnswer)) {
-            option2.setBackgroundColor(getResources().getColor(R.color.green));
-        } else {
-            option2.setVisibility(View.GONE);
-        }
-
-        if (option3.getText().toString().equals(currentCorrectAnswer)) {
-            option3.setBackgroundColor(getResources().getColor(R.color.green));
-        } else {
-            option3.setVisibility(View.GONE);
-        }
-
-        if (option4.getText().toString().equals(currentCorrectAnswer)) {
-            option4.setBackgroundColor(getResources().getColor(R.color.green));
-        } else {
-            option4.setVisibility(View.GONE);
-        }
-    }
-
-    private void changeColorOnIncorrectAnswer(RadioButton selectedOption) {
-        if (option1.getText().toString().equals(currentCorrectAnswer)) {
-            option1.setBackgroundColor(getResources().getColor(R.color.green));
-        } else if (option1 == selectedOption) {
-            option1.setBackgroundColor(getResources().getColor(R.color.red));
-        } else {
-            option1.setVisibility(View.GONE);
-        }
-
-        if (option2.getText().toString().equals(currentCorrectAnswer)) {
-            option2.setBackgroundColor(getResources().getColor(R.color.green));
-        } else if (option2 == selectedOption) {
-            option2.setBackgroundColor(getResources().getColor(R.color.red));
-        } else {
-            option2.setVisibility(View.GONE);
-        }
-
-        if (option3.getText().toString().equals(currentCorrectAnswer)) {
-            option3.setBackgroundColor(getResources().getColor(R.color.green));
-        } else if (option3 == selectedOption) {
-            option3.setBackgroundColor(getResources().getColor(R.color.red));
-        } else {
-            option3.setVisibility(View.GONE);
-        }
-
-        if (option4.getText().toString().equals(currentCorrectAnswer)) {
-            option4.setBackgroundColor(getResources().getColor(R.color.green));
-        } else if (option4 == selectedOption) {
-            option4.setBackgroundColor(getResources().getColor(R.color.red));
-        } else {
-            option4.setVisibility(View.GONE);
-        }
+        db.collection("users").document(userId).collection("scores")
+                .add(scoreData)
+                .addOnSuccessListener(documentReference -> {})
+                .addOnFailureListener(e -> {});
     }
 
     private void returnToStart() {
+        mAuth.signOut();
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.remove("logged_in_user");
