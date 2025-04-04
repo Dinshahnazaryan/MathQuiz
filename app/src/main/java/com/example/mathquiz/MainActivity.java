@@ -17,6 +17,8 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
@@ -27,18 +29,15 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView questionProgressText;
-    private TextView questionText;
+    private TextView questionProgressText, questionText, resultText, splashText, gradeText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn, homeBtn;
-    private TextView resultText;
-    private TextView splashText;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout splashLayout;
     private CountDownTimer questionTimer;
-    private TextView gradeText;
     private ImageView gradeEmoji;
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -71,17 +70,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private String[] correctAnswersText = {
-            "446",
-            "788",
-            "400",
-            "11",
-            "65",
-            "410",
-            "12",
-            "5",
-            "0",
-            "0",
-            "7"
+            "446", "788", "400", "11", "65", "410", "12", "5", "0", "0", "7"
     };
 
     private int currentQuestion = -1;
@@ -96,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        FirebaseApp.initializeApp(this);
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         if (!prefs.contains("logged_in_user")) {
@@ -105,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // UI bindings
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -123,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
 
+        // Button listeners
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
@@ -133,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 int progress = (int) ((3000 - millisUntilFinished) / 30);
                 splashProgress.setProgress(progress);
             }
+
             public void onFinish() {
                 splashLayout.setVisibility(View.GONE);
                 questionText.setVisibility(View.VISIBLE);
@@ -186,9 +180,7 @@ public class MainActivity extends AppCompatActivity {
             updateQuestionProgress();
 
             List<String> currentOptionsList = new ArrayList<>();
-            for (String option : options[currentQuestion]) {
-                currentOptionsList.add(option);
-            }
+            Collections.addAll(currentOptionsList, options[currentQuestion]);
             Collections.shuffle(currentOptionsList);
 
             option1.setText(currentOptionsList.get(0));
@@ -202,11 +194,6 @@ public class MainActivity extends AppCompatActivity {
             option2.setBackgroundResource(R.drawable.radiobutton_selector);
             option3.setBackgroundResource(R.drawable.radiobutton_selector);
             option4.setBackgroundResource(R.drawable.radiobutton_selector);
-            option1.setVisibility(View.VISIBLE);
-            option2.setVisibility(View.VISIBLE);
-            option3.setVisibility(View.VISIBLE);
-            option4.setVisibility(View.VISIBLE);
-
             answerOptions.clearCheck();
 
             startQuestionTimer();
@@ -229,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
 
             public void onFinish() {
                 incorrectCount++;
-                resultText.setText("Time's up! The correct answer is: " + currentCorrectAnswer);
+                resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
                 highlightCorrectAnswer();
                 currentQuestion++;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
@@ -257,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
             selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             incorrectCount++;
-            resultText.setText("Incorrect! The correct answer is: " + currentCorrectAnswer);
+            resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
             selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
             highlightCorrectAnswer();
         }
@@ -267,17 +254,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void highlightCorrectAnswer() {
-        if (option1.getText().toString().equals(currentCorrectAnswer)) {
-            option1.setBackgroundColor(getResources().getColor(R.color.green));
-        }
-        if (option2.getText().toString().equals(currentCorrectAnswer)) {
-            option2.setBackgroundColor(getResources().getColor(R.color.green));
-        }
-        if (option3.getText().toString().equals(currentCorrectAnswer)) {
-            option3.setBackgroundColor(getResources().getColor(R.color.green));
-        }
-        if (option4.getText().toString().equals(currentCorrectAnswer)) {
-            option4.setBackgroundColor(getResources().getColor(R.color.green));
+        for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
+            if (option.getText().toString().equals(currentCorrectAnswer)) {
+                option.setBackgroundColor(getResources().getColor(R.color.green));
+            }
         }
     }
 
@@ -296,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
             gradeText.setText("Excellent");
             gradeEmoji.setImageResource(R.drawable.excellent);
         }
+
         gradeText.setVisibility(View.VISIBLE);
         gradeEmoji.setVisibility(View.VISIBLE);
         submitAnswerBtn.setVisibility(View.GONE);
@@ -305,21 +286,21 @@ public class MainActivity extends AppCompatActivity {
         questionText.setVisibility(View.GONE);
         homeBtn.setVisibility(View.VISIBLE);
 
-        String userId;
-        userId = mAuth.getCurrentUser().getUid();
-        Map<String, Object> scoreData = new HashMap<>();
-        scoreData.put("correct", correctCount);
-        scoreData.put("incorrect", incorrectCount);
-        scoreData.put("timestamp", System.currentTimeMillis());
+        if (mAuth.getCurrentUser() != null) {
+            String userId = mAuth.getCurrentUser().getUid();
+            Map<String, Object> scoreData = new HashMap<>();
+            scoreData.put("correct", correctCount);
+            scoreData.put("incorrect", incorrectCount);
+            scoreData.put("timestamp", System.currentTimeMillis());
 
-        db.collection("users").document(userId).collection("scores")
-                .add(scoreData)
-                .addOnSuccessListener(documentReference -> {})
-                .addOnFailureListener(e -> {});
+            db.collection("users").document(userId).collection("scores")
+                    .add(scoreData)
+                    .addOnSuccessListener(documentReference -> {})
+                    .addOnFailureListener(e -> {});
+        }
     }
 
     private void returnToStart() {
-        mAuth.signOut();
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.remove("logged_in_user");
