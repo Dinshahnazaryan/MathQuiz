@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
@@ -86,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        FirebaseApp.initializeApp(this);
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         if (!prefs.contains("logged_in_user")) {
@@ -96,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // UI bindings
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -115,7 +112,16 @@ public class MainActivity extends AppCompatActivity {
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
 
-        // Button listeners
+        if (questionProgressText == null || questionText == null || answerOptions == null ||
+                option1 == null || option2 == null || option3 == null || option4 == null ||
+                submitAnswerBtn == null || startBtn == null || homeBtn == null ||
+                resultText == null || splashText == null || timerProgress == null ||
+                splashProgress == null || splashLayout == null || gradeText == null ||
+                gradeEmoji == null) {
+            Toast.makeText(this, "One or more UI elements not found", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
@@ -313,5 +319,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateQuestionProgress() {
         questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (questionTimer != null) {
+            questionTimer.cancel();
+        }
     }
 }
