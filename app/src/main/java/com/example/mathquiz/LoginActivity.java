@@ -1,20 +1,20 @@
 package com.example.mathquiz;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText usernameInput, passwordInput;
     private Button loginBtn;
     private TextView registerLink;
-    private SharedPreferences prefs;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInput);
         loginBtn = findViewById(R.id.loginBtn);
         registerLink = findViewById(R.id.registerLink);
-        prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        mAuth = FirebaseAuth.getInstance();
 
         loginBtn.setOnClickListener(v -> loginUser());
         registerLink.setOnClickListener(v -> {
@@ -36,25 +36,24 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loginUser() {
-        String username = usernameInput.getText().toString().trim();
+        String email = usernameInput.getText().toString().trim(); // Using email instead of username
         String password = passwordInput.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String storedPassword = prefs.getString(username, null);
-        if (storedPassword != null && storedPassword.equals(password)) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("logged_in_user", username);
-            editor.apply();
-            Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show();
-        }
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

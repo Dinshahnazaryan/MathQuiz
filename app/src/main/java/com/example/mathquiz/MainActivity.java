@@ -2,7 +2,6 @@ package com.example.mathquiz;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -86,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        if (!prefs.contains("logged_in_user")) {
+        // Check if user is logged in with Firebase Auth
+        if (mAuth.getCurrentUser() == null) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
@@ -301,17 +300,17 @@ public class MainActivity extends AppCompatActivity {
 
             db.collection("users").document(userId).collection("scores")
                     .add(scoreData)
-                    .addOnSuccessListener(documentReference -> {})
-                    .addOnFailureListener(e -> {});
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to save score: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 
     private void returnToStart() {
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove("logged_in_user");
-        editor.apply();
-
+        mAuth.signOut(); // Sign out from Firebase
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
