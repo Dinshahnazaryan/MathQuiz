@@ -40,3 +40,4 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore:25.1.1")
     implementation("androidx.core:core:1.13.1")
 }
+
