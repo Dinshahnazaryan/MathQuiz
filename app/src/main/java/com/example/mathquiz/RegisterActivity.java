@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText usernameInput, passwordInput;
+    private EditText emailInput, passwordInput;
     private Button registerBtn;
     private TextView loginLink;
     private FirebaseAuth mAuth;
@@ -21,7 +21,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        usernameInput = findViewById(R.id.usernameInput);
+        emailInput = findViewById(R.id.emailInput);
         passwordInput = findViewById(R.id.passwordInput);
         registerBtn = findViewById(R.id.registerBtn);
         loginLink = findViewById(R.id.loginLink);
@@ -36,7 +36,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        String email = usernameInput.getText().toString().trim(); // Using email instead of username
+        String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
@@ -48,7 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();
                     } else {

@@ -11,9 +11,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText usernameInput, passwordInput;
-    private Button loginBtn;
-    private TextView registerLink;
+    private EditText emailInput, passwordInput;
+    private Button loginBtn, registerBtn;
     private FirebaseAuth mAuth;
 
     @Override
@@ -21,22 +20,21 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        usernameInput = findViewById(R.id.usernameInput);
+        emailInput = findViewById(R.id.emailInput);
         passwordInput = findViewById(R.id.passwordInput);
         loginBtn = findViewById(R.id.loginBtn);
-        registerLink = findViewById(R.id.registerLink);
+        registerBtn = findViewById(R.id.registerBtn);
         mAuth = FirebaseAuth.getInstance();
 
         loginBtn.setOnClickListener(v -> loginUser());
-        registerLink.setOnClickListener(v -> {
+        registerBtn.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
-            finish();
         });
     }
 
     private void loginUser() {
-        String email = usernameInput.getText().toString().trim(); // Using email instead of username
+        String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
