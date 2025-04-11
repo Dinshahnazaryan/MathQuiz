@@ -1,7 +1,10 @@
 package com.example.mathquiz;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -16,7 +19,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
@@ -85,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Check if user is logged in with Firebase Auth
         if (mAuth.getCurrentUser() == null) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
@@ -142,6 +143,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startQuiz() {
+        if (!isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < questions.length; i++) {
             indices.add(i);
@@ -310,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void returnToStart() {
-        mAuth.signOut(); // Sign out from Firebase
+        mAuth.signOut();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
@@ -318,6 +324,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateQuestionProgress() {
         questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
     @Override

@@ -1,6 +1,9 @@
 package com.example.mathquiz;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -30,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
         try {
             setContentView(R.layout.activity_login);
 
-            // Initialize views
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
@@ -41,7 +43,6 @@ public class LoginActivity extends AppCompatActivity {
             splashText = findViewById(R.id.splashText);
             mAuth = FirebaseAuth.getInstance();
 
-            // Check if views are null
             if (emailInput == null || passwordInput == null || loginBtn == null ||
                     registerBtn == null || splashLayout == null || loginLayout == null ||
                     splashProgress == null || splashText == null) {
@@ -53,7 +54,6 @@ public class LoginActivity extends AppCompatActivity {
             loginBtn.setOnClickListener(v -> loginUser());
             registerBtn.setOnClickListener(v -> {
                 try {
-                    Log.d(TAG, "Register button clicked");
                     Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                     startActivity(intent);
                 } catch (Exception e) {
@@ -62,7 +62,6 @@ public class LoginActivity extends AppCompatActivity {
                 }
             });
 
-            // Splash screen timer
             splashProgress.setMax(100);
             new CountDownTimer(3000, 30) {
                 public void onTick(long millisUntilFinished) {
@@ -92,6 +91,16 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!isNetworkAvailable()) {
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
@@ -101,7 +110,13 @@ public class LoginActivity extends AppCompatActivity {
                             finish();
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(this, "Invalid email or password: " + errorMsg, Toast.LENGTH_LONG).show();
+                            if (errorMsg.contains("no user record")) {
+                                Toast.makeText(this, "No account found with this email", Toast.LENGTH_LONG).show();
+                            } else if (errorMsg.contains("password is invalid")) {
+                                Toast.makeText(this, "Incorrect password", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            }
                             Log.e(TAG, "Login failed: " + errorMsg);
                         }
                     });
@@ -109,5 +124,11 @@ public class LoginActivity extends AppCompatActivity {
             Log.e(TAG, "Error in loginUser: " + e.getMessage());
             Toast.makeText(this, "Login error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 }

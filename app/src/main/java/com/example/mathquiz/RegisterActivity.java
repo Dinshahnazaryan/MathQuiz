@@ -1,6 +1,9 @@
 package com.example.mathquiz;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -30,10 +33,9 @@ public class RegisterActivity extends AppCompatActivity {
             loginLink = findViewById(R.id.loginLink);
             mAuth = FirebaseAuth.getInstance();
 
-            // Check if views are null
             if (emailInput == null || passwordInput == null || registerBtn == null || loginLink == null) {
-                Log.e(TAG, "One or more views are null");
-                Toast.makeText(this, "Error initializing UI", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "One or more views are null: emailInput=" + emailInput + ", passwordInput=" + passwordInput + ", registerBtn=" + registerBtn + ", loginLink=" + loginLink);
+                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -42,15 +44,14 @@ public class RegisterActivity extends AppCompatActivity {
                 try {
                     Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                     startActivity(intent);
-                    finish();
                 } catch (Exception e) {
-                    Log.e(TAG, "Error returning to LoginActivity: " + e.getMessage());
-                    Toast.makeText(this, "Error returning to login: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error navigating to LoginActivity: " + e.getMessage());
+                    Toast.makeText(this, "Navigation error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
 
         } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage());
+            Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
             Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -65,6 +66,21 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (password.length() < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!isNetworkAvailable()) {
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
@@ -74,13 +90,25 @@ public class RegisterActivity extends AppCompatActivity {
                             finish();
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            if (errorMsg.contains("email address is already in use")) {
+                                Toast.makeText(this, "Email is already registered", Toast.LENGTH_LONG).show();
+                            } else if (errorMsg.contains("weak password")) {
+                                Toast.makeText(this, "Password is too weak", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            }
                             Log.e(TAG, "Registration failed: " + errorMsg);
                         }
                     });
         } catch (Exception e) {
-            Log.e(TAG, "Error in registerUser: " + e.getMessage());
+            Log.e(TAG, "Error in registerUser: " + e.getMessage(), e);
             Toast.makeText(this, "Registration error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 }
