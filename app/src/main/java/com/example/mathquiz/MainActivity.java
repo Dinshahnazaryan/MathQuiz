@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -18,6 +19,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn, homeBtn;
+    private ImageButton accountBtn;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout splashLayout;
     private CountDownTimer questionTimer;
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
         startBtn = findViewById(R.id.startBtn);
         homeBtn = findViewById(R.id.homeBtn);
+        accountBtn = findViewById(R.id.accountBtn);
         resultText = findViewById(R.id.resultText);
         splashText = findViewById(R.id.splashText);
         timerProgress = findViewById(R.id.timerProgress);
@@ -114,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (questionProgressText == null || questionText == null || answerOptions == null ||
                 option1 == null || option2 == null || option3 == null || option4 == null ||
-                submitAnswerBtn == null || startBtn == null || homeBtn == null ||
+                submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
                 resultText == null || splashText == null || timerProgress == null ||
                 splashProgress == null || splashLayout == null || gradeText == null ||
                 gradeEmoji == null) {
@@ -125,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
+        accountBtn.setOnClickListener(v -> showAccountDialog());
 
         splashProgress.setMax(100);
         new CountDownTimer(3000, 30) {
@@ -138,8 +143,23 @@ public class MainActivity extends AppCompatActivity {
                 questionText.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.VISIBLE);
                 resultText.setVisibility(View.VISIBLE);
+                accountBtn.setVisibility(View.VISIBLE);
             }
         }.start();
+    }
+
+    private void showAccountDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Account Information");
+
+        String userEmail = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getEmail() : "No user signed in";
+        builder.setMessage("Email: " + userEmail);
+
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Sign Out", (dialog, which) -> returnToStart());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void startQuiz() {
@@ -177,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
         gradeEmoji.setVisibility(View.GONE);
         startBtn.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
+        accountBtn.setVisibility(View.GONE);
         answerOptions.setVisibility(View.VISIBLE);
         submitAnswerBtn.setVisibility(View.VISIBLE);
         timerProgress.setVisibility(View.VISIBLE);
@@ -296,6 +317,7 @@ public class MainActivity extends AppCompatActivity {
         questionProgressText.setVisibility(View.GONE);
         questionText.setVisibility(View.GONE);
         homeBtn.setVisibility(View.VISIBLE);
+        accountBtn.setVisibility(View.VISIBLE);
 
         if (mAuth.getCurrentUser() != null) {
             String userId = mAuth.getCurrentUser().getUid();
