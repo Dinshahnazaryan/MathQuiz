@@ -19,7 +19,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -129,7 +128,10 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
-        accountBtn.setOnClickListener(v -> showAccountDialog());
+        accountBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AccountActivity.class);
+            startActivity(intent);
+        });
 
         splashProgress.setMax(100);
         new CountDownTimer(3000, 30) {
@@ -146,20 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 accountBtn.setVisibility(View.VISIBLE);
             }
         }.start();
-    }
-
-    private void showAccountDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Account Information");
-
-        String userEmail = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getEmail() : "No user signed in";
-        builder.setMessage("Email: " + userEmail);
-
-        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-        builder.setNegativeButton("Sign Out", (dialog, which) -> returnToStart());
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
     }
 
     private void startQuiz() {
