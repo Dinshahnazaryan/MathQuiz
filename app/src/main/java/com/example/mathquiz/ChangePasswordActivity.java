@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class ChangePasswordActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
+    private EditText currentPasswordEditText;
     private EditText newPasswordEditText;
     private EditText confirmPasswordEditText;
     private Button submitButton;
@@ -22,10 +23,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_change_password);
 
         mAuth = FirebaseAuth.getInstance();
+        currentPasswordEditText = findViewById(R.id.currentPasswordEditText);
         newPasswordEditText = findViewById(R.id.newPasswordEditText);
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         submitButton = findViewById(R.id.submitButton);
         cancelButton = findViewById(R.id.cancelButton);
+
+        currentPasswordEditText.setText("Not available (stored securely)");
+        currentPasswordEditText.setEnabled(false);
 
         submitButton.setOnClickListener(v -> changePassword());
         cancelButton.setOnClickListener(v -> finish());
