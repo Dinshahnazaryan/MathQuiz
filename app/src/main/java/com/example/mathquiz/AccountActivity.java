@@ -11,6 +11,7 @@ public class AccountActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private TextView emailTextView;
+    private Button changePasswordButton;
     private Button signOutButton;
 
     @Override
@@ -21,13 +22,17 @@ public class AccountActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         emailTextView = findViewById(R.id.emailTextView);
+        changePasswordButton = findViewById(R.id.changePasswordButton);
         signOutButton = findViewById(R.id.signOutButton);
-
 
         String userEmail = mAuth.getCurrentUser() != null ?
                 mAuth.getCurrentUser().getEmail() : "No user signed in";
         emailTextView.setText("Email: " + userEmail);
 
+        changePasswordButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AccountActivity.this, ChangePasswordActivity.class);
+            startActivity(intent);
+        });
 
         signOutButton.setOnClickListener(v -> {
             mAuth.signOut();

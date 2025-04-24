@@ -38,6 +38,10 @@
             android:name=".AccountActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ChangePasswordActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
