@@ -5,6 +5,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -29,44 +31,49 @@ public class ChangePasswordActivity extends AppCompatActivity {
         submitButton = findViewById(R.id.submitButton);
         cancelButton = findViewById(R.id.cancelButton);
 
-        currentPasswordEditText.setText("Not available (stored securely)");
-        currentPasswordEditText.setEnabled(false);
-
         submitButton.setOnClickListener(v -> changePassword());
         cancelButton.setOnClickListener(v -> finish());
     }
 
     private void changePassword() {
+        String currentPassword = currentPasswordEditText.getText().toString().trim();
         String newPassword = newPasswordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
-            Toast.makeText(this, "Please fill in both fields", Toast.LENGTH_SHORT).show();
+        if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!newPassword.equals(confirmPassword)) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "New passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (newPassword.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "New password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             return;
         }
 
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            user.updatePassword(newPassword)
+        if (user != null && user.getEmail() != null) {
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+            user.reauthenticate(credential)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
-                        finish();
+                        user.updatePassword(newPassword)
+                                .addOnSuccessListener(aVoid1 -> {
+                                    Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Failed to update password: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to update password: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Incorrect current password", Toast.LENGTH_SHORT).show();
                     });
         } else {
-            Toast.makeText(this, "No user is signed in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No user is signed in or email not found", Toast.LENGTH_SHORT).show();
         }
     }
 }
