@@ -42,7 +42,9 @@ public class RegisterActivity extends AppCompatActivity {
             registerBtn.setOnClickListener(v -> registerUser());
             loginLink.setOnClickListener(v -> {
                 try {
+                    Log.d(TAG, "Navigating to LoginActivity");
                     Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 } catch (Exception e) {
                     Log.e(TAG, "Error navigating to LoginActivity: " + e.getMessage());
@@ -84,8 +86,10 @@ public class RegisterActivity extends AppCompatActivity {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
+                            Log.d(TAG, "Registration successful, navigating to MainActivity");
                             Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
                         } else {

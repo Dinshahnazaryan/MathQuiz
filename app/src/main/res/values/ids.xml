@@ -15,4 +15,9 @@
     <item name="loginBtn" type="id" />
     <item name="registerLink" type="id" />
     <item name="emailInput" type="id" />
+    <item name="gradeText" type="id" />
+    <item name="gradeEmoji" type="id" />
+    <item name="homeBtn" type="id" />
+    <item name="accountBtn" type="id" />
+    <item name="questionProgressText" type="id" />
 </resources>

@@ -54,7 +54,9 @@ public class LoginActivity extends AppCompatActivity {
             loginBtn.setOnClickListener(v -> loginUser());
             registerBtn.setOnClickListener(v -> {
                 try {
+                    Log.d(TAG, "Navigating to RegisterActivity");
                     Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 } catch (Exception e) {
                     Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage());
@@ -104,8 +106,10 @@ public class LoginActivity extends AppCompatActivity {
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
+                            Log.d(TAG, "Login successful, navigating to MainActivity");
                             Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
                         } else {
