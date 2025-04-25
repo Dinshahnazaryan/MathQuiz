@@ -25,7 +25,6 @@ public class AccountActivity extends AppCompatActivity {
         try {
             setContentView(R.layout.activity_account);
             Log.d(TAG, "AccountActivity: onCreate started");
-
             mAuth = FirebaseAuth.getInstance();
             if (mAuth == null) {
                 Log.e(TAG, "FirebaseAuth is null");
@@ -33,7 +32,6 @@ public class AccountActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-
             Toolbar toolbar = findViewById(R.id.toolbar);
             if (toolbar != null) {
                 setSupportActionBar(toolbar);
@@ -46,12 +44,10 @@ public class AccountActivity extends AppCompatActivity {
             } else {
                 Log.e(TAG, "Toolbar not found");
             }
-
             accountTitle = findViewById(R.id.accountTitle);
             emailTextView = findViewById(R.id.emailTextView);
             passwordNavButton = findViewById(R.id.passwordNavButton);
             signOutButton = findViewById(R.id.signOutButton);
-
             if (emailTextView == null || passwordNavButton == null || signOutButton == null) {
                 Log.e(TAG, "UI elements missing: emailTextView=" + emailTextView +
                         ", passwordNavButton=" + passwordNavButton + ", signOutButton=" + signOutButton);
@@ -59,11 +55,9 @@ public class AccountActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-
             if (accountTitle != null) {
                 accountTitle.setText("Account Information");
             }
-
             if (mAuth.getCurrentUser() == null) {
                 Log.d(TAG, "No user signed in");
                 emailTextView.setText("Email: No user signed in");
@@ -83,7 +77,6 @@ public class AccountActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
-
                 signOutButton.setOnClickListener(v -> {
                     Log.d(TAG, "Sign out clicked");
                     mAuth.signOut();

@@ -26,19 +26,16 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_register);
-
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             registerBtn = findViewById(R.id.registerBtn);
             loginLink = findViewById(R.id.loginLink);
             mAuth = FirebaseAuth.getInstance();
-
             if (emailInput == null || passwordInput == null || registerBtn == null || loginLink == null) {
                 Log.e(TAG, "One or more views are null: emailInput=" + emailInput + ", passwordInput=" + passwordInput + ", registerBtn=" + registerBtn + ", loginLink=" + loginLink);
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 return;
             }
-
             registerBtn.setOnClickListener(v -> registerUser());
             loginLink.setOnClickListener(v -> {
                 try {
@@ -51,7 +48,6 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(this, "Navigation error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
-
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
             Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -62,27 +58,22 @@ public class RegisterActivity extends AppCompatActivity {
         try {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
-
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (password.length() < 6) {
                 Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!isNetworkAvailable()) {
                 Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {

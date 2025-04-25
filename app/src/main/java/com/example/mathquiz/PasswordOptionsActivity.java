@@ -14,14 +14,11 @@ public class PasswordOptionsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_password_options);
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
-
         changePasswordNavButton = findViewById(R.id.changePasswordNavButton);
-
         changePasswordNavButton.setOnClickListener(v -> {
             Intent intent = new Intent(PasswordOptionsActivity.this, ChangePasswordActivity.class);
             startActivity(intent);

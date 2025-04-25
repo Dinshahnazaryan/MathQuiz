@@ -24,19 +24,16 @@ public class ChangePasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
-
         mAuth = FirebaseAuth.getInstance();
         currentPasswordEditText = findViewById(R.id.currentPasswordEditText);
         newPasswordEditText = findViewById(R.id.newPasswordEditText);
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         submitButton = findViewById(R.id.submitButton);
         cancelButton = findViewById(R.id.cancelButton);
-
         submitButton.setOnClickListener(v -> changePassword());
         cancelButton.setOnClickListener(v -> finish());
     }
@@ -45,22 +42,18 @@ public class ChangePasswordActivity extends AppCompatActivity {
         String currentPassword = currentPasswordEditText.getText().toString().trim();
         String newPassword = newPasswordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
-
         if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (!newPassword.equals(confirmPassword)) {
             Toast.makeText(this, "New passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (newPassword.length() < 6) {
             Toast.makeText(this, "New password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             return;
         }
-
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null && user.getEmail() != null) {
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);

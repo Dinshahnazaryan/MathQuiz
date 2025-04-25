@@ -32,7 +32,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_login);
-
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
@@ -42,7 +41,6 @@ public class LoginActivity extends AppCompatActivity {
             splashProgress = findViewById(R.id.splashProgress);
             splashText = findViewById(R.id.splashText);
             mAuth = FirebaseAuth.getInstance();
-
             if (emailInput == null || passwordInput == null || loginBtn == null ||
                     registerBtn == null || splashLayout == null || loginLayout == null ||
                     splashProgress == null || splashText == null) {
@@ -50,7 +48,6 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "Error initializing UI", Toast.LENGTH_LONG).show();
                 return;
             }
-
             loginBtn.setOnClickListener(v -> loginUser());
             registerBtn.setOnClickListener(v -> {
                 try {
@@ -63,7 +60,6 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error opening registration: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
-
             splashProgress.setMax(100);
             new CountDownTimer(3000, 30) {
                 public void onTick(long millisUntilFinished) {
@@ -76,7 +72,6 @@ public class LoginActivity extends AppCompatActivity {
                     loginLayout.setVisibility(View.VISIBLE);
                 }
             }.start();
-
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage());
             Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -87,22 +82,18 @@ public class LoginActivity extends AppCompatActivity {
         try {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
-
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!isNetworkAvailable()) {
                 Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {

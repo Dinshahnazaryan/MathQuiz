@@ -41,10 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout splashLayout;
     private CountDownTimer questionTimer;
     private ImageView gradeEmoji;
-
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
             "If we minus 712 from 1500, how much do we get?",
@@ -58,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
             "The product of 121 × 0 × 200 × 25 is",
             "What is the next prime number after 5?"
     };
-
     private String[][] options = {
             {"446", "500", "400", "600"},
             {"788", "700", "1000", "600"},
@@ -72,11 +69,9 @@ public class MainActivity extends AppCompatActivity {
             {"0", "250", "500", "1000"},
             {"7", "9", "11", "13"}
     };
-
     private String[] correctAnswersText = {
             "446", "788", "400", "11", "65", "410", "12", "5", "0", "0", "7"
     };
-
     private int currentQuestion = -1;
     private int correctCount = 0;
     private int incorrectCount = 0;
@@ -87,10 +82,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
         Log.d(TAG, "onCreate: Checking user authentication status");
         if (mAuth.getCurrentUser() == null) {
             Log.d(TAG, "No user signed in, navigating to LoginActivity");
@@ -102,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d(TAG, "User signed in: " + mAuth.getCurrentUser().getEmail());
         }
-
-        // Инициализация UI-элементов
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -122,8 +113,6 @@ public class MainActivity extends AppCompatActivity {
         splashLayout = findViewById(R.id.splashLayout);
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
-
-        // Проверка на null для всех UI-элементов
         if (questionProgressText == null || questionText == null || answerOptions == null ||
                 option1 == null || option2 == null || option3 == null || option4 == null ||
                 submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
@@ -134,8 +123,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
             return;
         }
-
-        // Установка слушателей
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
@@ -154,8 +141,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-        // Инициализация заставки
         splashProgress.setMax(100);
         new CountDownTimer(3000, 30) {
             public void onTick(long millisUntilFinished) {
@@ -182,28 +167,23 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
             return;
         }
-
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < questions.length; i++) {
             indices.add(i);
         }
         Collections.shuffle(indices);
-
         String[] shuffledQuestions = new String[questions.length];
         String[][] shuffledOptions = new String[options.length][];
         String[] shuffledCorrectAnswersText = new String[correctAnswersText.length];
-
         for (int i = 0; i < indices.size(); i++) {
             int index = indices.get(i);
             shuffledQuestions[i] = questions[index];
             shuffledOptions[i] = options[index];
             shuffledCorrectAnswersText[i] = correctAnswersText[index];
         }
-
         questions = shuffledQuestions;
         options = shuffledOptions;
         correctAnswersText = shuffledCorrectAnswersText;
-
         currentQuestion = 0;
         correctCount = 0;
         incorrectCount = 0;
@@ -225,24 +205,19 @@ public class MainActivity extends AppCompatActivity {
         if (currentQuestion < questions.length) {
             if (questionText != null) questionText.setText(questions[currentQuestion]);
             updateQuestionProgress();
-
             List<String> currentOptionsList = new ArrayList<>();
             Collections.addAll(currentOptionsList, options[currentQuestion]);
             Collections.shuffle(currentOptionsList);
-
             if (option1 != null) option1.setText(currentOptionsList.get(0));
             if (option2 != null) option2.setText(currentOptionsList.get(1));
             if (option3 != null) option3.setText(currentOptionsList.get(2));
             if (option4 != null) option4.setText(currentOptionsList.get(3));
-
             currentCorrectAnswer = correctAnswersText[currentQuestion];
-
             if (option1 != null) option1.setBackgroundResource(R.drawable.radiobutton_selector);
             if (option2 != null) option2.setBackgroundResource(R.drawable.radiobutton_selector);
             if (option3 != null) option3.setBackgroundResource(R.drawable.radiobutton_selector);
             if (option4 != null) option4.setBackgroundResource(R.drawable.radiobutton_selector);
             if (answerOptions != null) answerOptions.clearCheck();
-
             startQuestionTimer();
         } else {
             showResults();
@@ -253,7 +228,6 @@ public class MainActivity extends AppCompatActivity {
         if (questionTimer != null) {
             questionTimer.cancel();
         }
-
         if (timerProgress != null) timerProgress.setMax(100);
         questionTimer = new CountDownTimer(15000, 150) {
             public void onTick(long millisUntilFinished) {
@@ -278,15 +252,12 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (questionTimer != null) {
             questionTimer.cancel();
         }
-
         RadioButton selectedOption = findViewById(selectedId);
         if (selectedOption == null) return;
         String selectedAnswerText = selectedOption.getText().toString();
-
         if (selectedAnswerText.equals(currentCorrectAnswer)) {
             correctCount++;
             if (resultText != null) resultText.setText("Correct!");
@@ -297,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
             selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
             highlightCorrectAnswer();
         }
-
         currentQuestion++;
         new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
     }
@@ -329,7 +299,6 @@ public class MainActivity extends AppCompatActivity {
                 gradeEmoji.setImageResource(R.drawable.excellent);
             }
         }
-
         if (gradeText != null) gradeText.setVisibility(View.VISIBLE);
         if (gradeEmoji != null) gradeEmoji.setVisibility(View.VISIBLE);
         if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
@@ -342,14 +311,12 @@ public class MainActivity extends AppCompatActivity {
             accountBtn.setVisibility(View.VISIBLE);
             Log.d(TAG, "Account button set to VISIBLE in showResults");
         }
-
         if (mAuth.getCurrentUser() != null) {
             String userId = mAuth.getCurrentUser().getUid();
             Map<String, Object> scoreData = new HashMap<>();
             scoreData.put("correct", correctCount);
             scoreData.put("incorrect", incorrectCount);
             scoreData.put("timestamp", System.currentTimeMillis());
-
             db.collection("users").document(userId).collection("scores")
                     .add(scoreData)
                     .addOnSuccessListener(documentReference -> {
