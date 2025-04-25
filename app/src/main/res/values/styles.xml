@@ -2,15 +2,13 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-    </style>
-
-
-
-
-
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#1A237E</item>
         <item name="colorPrimaryDark">#000051</item>
         <item name="colorAccent">#4CAF50</item>
+        <item name="toolbarStyle">@style/AppToolbar</item>
+    </style>
+
+    <style name="AppToolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="navigationIconTint">#FFFFFF</item>
     </style>
 </resources>

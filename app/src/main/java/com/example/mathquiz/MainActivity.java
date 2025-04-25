@@ -85,16 +85,6 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         Log.d(TAG, "onCreate: Checking user authentication status");
-        if (mAuth.getCurrentUser() == null) {
-            Log.d(TAG, "No user signed in, navigating to LoginActivity");
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return;
-        } else {
-            Log.d(TAG, "User signed in: " + mAuth.getCurrentUser().getEmail());
-        }
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -129,11 +119,11 @@ public class MainActivity extends AppCompatActivity {
         accountBtn.setOnClickListener(v -> {
             Log.d(TAG, "Account button clicked, visibility: " + (accountBtn.getVisibility() == View.VISIBLE ? "VISIBLE" : "GONE"));
             if (mAuth.getCurrentUser() == null) {
-                Log.d(TAG, "No user signed in, navigating to LoginActivity");
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                Log.d(TAG, "No user signed in, navigating to RegisterActivity");
+                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                Toast.makeText(this, "Please sign in to access account", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
             } else {
                 Log.d(TAG, "User signed in, navigating to AccountActivity");
                 Intent intent = new Intent(MainActivity.this, AccountActivity.class);
@@ -150,13 +140,21 @@ public class MainActivity extends AppCompatActivity {
 
             public void onFinish() {
                 Log.d(TAG, "Splash screen finished, updating UI visibility");
-                if (splashLayout != null) splashLayout.setVisibility(View.GONE);
-                if (questionText != null) questionText.setVisibility(View.VISIBLE);
-                if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-                if (resultText != null) resultText.setVisibility(View.VISIBLE);
-                if (accountBtn != null) {
-                    accountBtn.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Account button set to VISIBLE after splash");
+                if (mAuth.getCurrentUser() == null) {
+                    Log.d(TAG, "No user signed in, navigating to RegisterActivity");
+                    Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    if (splashLayout != null) splashLayout.setVisibility(View.GONE);
+                    if (questionText != null) questionText.setVisibility(View.VISIBLE);
+                    if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
+                    if (resultText != null) resultText.setVisibility(View.VISIBLE);
+                    if (accountBtn != null) {
+                        accountBtn.setVisibility(View.VISIBLE);
+                        Log.d(TAG, "Account button set to VISIBLE after splash");
+                    }
                 }
             }
         }.start();
@@ -329,12 +327,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void returnToStart() {
-        mAuth.signOut();
-        Log.d(TAG, "Home button clicked, signing out and navigating to LoginActivity");
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        Log.d(TAG, "Home button clicked, resetting quiz");
+        currentQuestion = -1;
+        correctCount = 0;
+        incorrectCount = 0;
+        if (splashLayout != null) splashLayout.setVisibility(View.GONE);
+        if (questionText != null) {
+            questionText.setText("");
+            questionText.setVisibility(View.VISIBLE);
+        }
+        if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
+        if (homeBtn != null) homeBtn.setVisibility(View.GONE);
+        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
+        if (resultText != null) {
+            resultText.setText("");
+            resultText.setVisibility(View.VISIBLE);
+        }
+        if (gradeText != null) gradeText.setVisibility(View.GONE);
+        if (gradeEmoji != null) gradeEmoji.setVisibility(View.GONE);
+        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
+        if (answerOptions != null) answerOptions.setVisibility(View.GONE);
+        if (timerProgress != null) timerProgress.setVisibility(View.GONE);
+        if (questionProgressText != null) questionProgressText.setVisibility(View.GONE);
     }
 
     private void updateQuestionProgress() {

@@ -55,7 +55,7 @@
             android:textSize="18sp"
             android:padding="12dp"
             android:background="@drawable/button_selector"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A237E"
             android:layout_marginBottom="16dp"/>
 
         <TextView
