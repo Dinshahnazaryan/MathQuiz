@@ -4,13 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/dark_blue">
+    android:background="@android:color/black">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/dark_blue" />
+        android:background="@android:color/black" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:text="Account Information"
             android:textSize="24sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@android:color/white"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"/>
 
@@ -36,7 +36,7 @@
             android:layout_marginTop="32dp"
             android:text="Email: "
             android:textSize="20sp"
-            android:textColor="#FFFFFF"/>
+            android:textColor="@android:color/white"/>
 
         <LinearLayout
             android:id="@+id/passwordRow"
@@ -54,16 +54,16 @@
                 android:layout_weight="1"
                 android:text="Password"
                 android:textSize="20sp"
-                android:textColor="#FFFFFF"/>
+                android:textColor="@android:color/white"/>
 
             <ImageButton
                 android:id="@+id/passwordNavButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@null"
                 android:contentDescription="Navigate to password options"
-                android:src="@drawable/ic_arrow_right"
-                tools:ignore="TouchTargetSizeCheck" />
+                android:src="@android:drawable/ic_menu_manage"
+                android:scaleType="centerInside" />
         </LinearLayout>
 
         <Button
@@ -73,12 +73,11 @@
             android:layout_below="@id/passwordRow"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="32dp"
-            android:background="@drawable/button_selector"
+            android:background="@android:drawable/btn_default"
             android:padding="12dp"
             android:text="Sign Out"
-            android:textColor="#1A237E"
+            android:textColor="@android:color/black"
             android:textSize="18sp"/>
 
     </RelativeLayout>
-
 </LinearLayout>

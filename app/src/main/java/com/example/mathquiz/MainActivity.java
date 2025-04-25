@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "User signed in: " + mAuth.getCurrentUser().getEmail());
         }
 
-
+        // Инициализация UI-элементов
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
 
-
+        // Проверка на null для всех UI-элементов
         if (questionProgressText == null || questionText == null || answerOptions == null ||
                 option1 == null || option2 == null || option3 == null || option4 == null ||
                 submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
@@ -135,12 +135,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
+        // Установка слушателей
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
         accountBtn.setOnClickListener(v -> {
-            Log.d(TAG, "Account button clicked, visibility: " + accountBtn.getVisibility());
+            Log.d(TAG, "Account button clicked, visibility: " + (accountBtn.getVisibility() == View.VISIBLE ? "VISIBLE" : "GONE"));
             if (mAuth.getCurrentUser() == null) {
                 Log.d(TAG, "No user signed in, navigating to LoginActivity");
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -155,12 +155,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        // Инициализация заставки
         splashProgress.setMax(100);
         new CountDownTimer(3000, 30) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((3000 - millisUntilFinished) / 30);
-                splashProgress.setProgress(progress);
+                if (splashProgress != null) splashProgress.setProgress(progress);
             }
 
             public void onFinish() {
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultText != null) resultText.setVisibility(View.VISIBLE);
                 if (accountBtn != null) {
                     accountBtn.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Account button set to VISIBLE");
+                    Log.d(TAG, "Account button set to VISIBLE after splash");
                 }
             }
         }.start();
