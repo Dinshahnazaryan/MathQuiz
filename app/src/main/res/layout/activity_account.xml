@@ -1,71 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
+    android:orientation="vertical"
     android:background="@color/dark_blue">
 
-    <TextView
-        android:id="@+id/accountTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Account Information"
-        android:textSize="24sp"
-        android:textColor="#FFFFFF"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"/>
-
-    <TextView
-        android:id="@+id/emailTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/accountTitle"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"
-        android:text="Email: "
-        android:textSize="20sp"
-        android:textColor="#FFFFFF"/>
-
-    <LinearLayout
-        android:id="@+id/passwordRow"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/emailTextView"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:background="?android:attr/selectableItemBackground">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/dark_blue" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/accountTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Password"
+            android:text="Account Information"
+            android:textSize="24sp"
+            android:textColor="#FFFFFF"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/emailTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/accountTitle"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="32dp"
+            android:text="Email: "
             android:textSize="20sp"
             android:textColor="#FFFFFF"/>
 
-        <ImageButton
-            android:id="@+id/passwordNavButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@null"
-            android:contentDescription="Navigate to password options"
-            android:src="@drawable/ic_arrow_right"
-            tools:ignore="TouchTargetSizeCheck" />
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/passwordRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/emailTextView"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="?android:attr/selectableItemBackground">
 
-    <Button
-        android:id="@+id/signOutButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/passwordRow"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/button_selector"
-        android:padding="12dp"
-        android:text="Sign Out"
-        android:textColor="#1A237E"
-        android:textSize="18sp"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Password"
+                android:textSize="20sp"
+                android:textColor="#FFFFFF"/>
 
-</RelativeLayout>
+            <ImageButton
+                android:id="@+id/passwordNavButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@null"
+                android:contentDescription="Navigate to password options"
+                android:src="@drawable/ic_arrow_right"
+                tools:ignore="TouchTargetSizeCheck" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/signOutButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/passwordRow"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/button_selector"
+            android:padding="12dp"
+            android:text="Sign Out"
+            android:textColor="#1A237E"
+            android:textSize="18sp"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
