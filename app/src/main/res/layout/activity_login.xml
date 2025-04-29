@@ -25,7 +25,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:src="@drawable/ic_math_quiz"
-                android:contentDescription="MathTell me more" />
+                android:contentDescription="Math Quiz Icon" />
 
             <TextView
                 android:id="@+id/splashText"
@@ -73,12 +73,12 @@
             android:layout_height="wrap_content"
             android:hint="Email"
             android:textColor="#1A237E"
-        android:textColorHint="#B0BEC5"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="@drawable/edittext_selector"
-        android:inputType="textEmailAddress"
-        android:layout_marginBottom="16dp"/>
+            android:textColorHint="#B0BEC5"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:background="@drawable/edittext_selector"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="16dp"/>
 
         <EditText
             android:id="@+id/passwordInput"
@@ -86,12 +86,12 @@
             android:layout_height="wrap_content"
             android:hint="Password"
             android:textColor="#1A237E"
-        android:textColorHint="#B0BEC5"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="@drawable/edittext_selector"
-        android:inputType="textPassword"
-        android:layout_marginBottom="24dp"/>
+            android:textColorHint="#B0BEC5"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:background="@drawable/edittext_selector"
+            android:inputType="textPassword"
+            android:layout_marginBottom="24dp"/>
 
         <Button
             android:id="@+id/loginBtn"
@@ -112,6 +112,18 @@
             android:textSize="18sp"
             android:padding="12dp"
             android:background="@drawable/button_selector"
-            android:textColor="#1A237E"/>
+            android:textColor="#1A237E"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/resendVerificationBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Resend Verification Email"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:background="@drawable/button_selector"
+            android:textColor="#1A237E"
+            android:visibility="gone"/>
     </LinearLayout>
 </RelativeLayout>

@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -77,12 +78,27 @@ public class RegisterActivity extends AppCompatActivity {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
-                            Log.d(TAG, "Registration successful, navigating to MainActivity");
-                            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(verificationTask -> {
+                                            if (verificationTask.isSuccessful()) {
+                                                Log.d(TAG, "Verification email sent to " + email);
+                                                Toast.makeText(this, "Verification email sent. Please verify your email.", Toast.LENGTH_LONG).show();
+                                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                startActivity(intent);
+                                                finish();
+                                            } else {
+                                                String errorMsg = verificationTask.getException() != null ? verificationTask.getException().getMessage() : "Unknown error";
+                                                Log.e(TAG, "Failed to send verification email: " + errorMsg);
+                                                Toast.makeText(this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                            } else {
+                                Log.e(TAG, "User is null after registration");
+                                Toast.makeText(this, "Registration failed: User not found", Toast.LENGTH_LONG).show();
+                            }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                             if (errorMsg.contains("email address is already in use")) {

@@ -16,12 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private EditText emailInput, passwordInput;
-    private Button loginBtn, registerBtn;
+    private Button loginBtn, registerBtn, resendVerificationBtn;
     private LinearLayout splashLayout, loginLayout;
     private ProgressBar splashProgress;
     private TextView splashText;
@@ -36,14 +37,15 @@ public class LoginActivity extends AppCompatActivity {
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
             registerBtn = findViewById(R.id.registerBtn);
+            resendVerificationBtn = findViewById(R.id.resendVerificationBtn);
             splashLayout = findViewById(R.id.splashLayout);
             loginLayout = findViewById(R.id.loginLayout);
             splashProgress = findViewById(R.id.splashProgress);
             splashText = findViewById(R.id.splashText);
             mAuth = FirebaseAuth.getInstance();
             if (emailInput == null || passwordInput == null || loginBtn == null ||
-                    registerBtn == null || splashLayout == null || loginLayout == null ||
-                    splashProgress == null || splashText == null) {
+                    registerBtn == null || resendVerificationBtn == null || splashLayout == null ||
+                    loginLayout == null || splashProgress == null || splashText == null) {
                 Log.e(TAG, "One or more views are null");
                 Toast.makeText(this, "Error initializing UI", Toast.LENGTH_LONG).show();
                 return;
@@ -60,6 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error opening registration: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
+            resendVerificationBtn.setOnClickListener(v -> resendVerificationEmail());
             splashProgress.setMax(100);
             new CountDownTimer(3000, 30) {
                 public void onTick(long millisUntilFinished) {
@@ -97,12 +100,23 @@ public class LoginActivity extends AppCompatActivity {
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
-                            Log.d(TAG, "Login successful, navigating to MainActivity");
-                            Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null && user.isEmailVerified()) {
+                                Log.d(TAG, "Login successful, email verified, navigating to MainActivity");
+                                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else if (user != null) {
+                                Log.d(TAG, "Email not verified for user: " + email);
+                                Toast.makeText(this, "Please verify your email before logging in", Toast.LENGTH_LONG).show();
+                                resendVerificationBtn.setVisibility(View.VISIBLE);
+                                mAuth.signOut();
+                            } else {
+                                Log.e(TAG, "User is null after login");
+                                Toast.makeText(this, "Login failed: User not found", Toast.LENGTH_LONG).show();
+                            }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                             if (errorMsg.contains("no user record")) {
@@ -118,6 +132,23 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error in loginUser: " + e.getMessage());
             Toast.makeText(this, "Login error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void resendVerificationEmail() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && !user.isEmailVerified()) {
+            user.sendEmailVerification()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Verification email resent", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                            Toast.makeText(this, "Failed to resend verification email: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
+        } else {
+            Toast.makeText(this, "No user signed in or email already verified", Toast.LENGTH_SHORT).show();
         }
     }
 
