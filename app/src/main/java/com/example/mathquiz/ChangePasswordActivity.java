@@ -1,5 +1,6 @@
 package com.example.mathquiz;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -60,19 +61,27 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
     private void changePassword() {
         try {
+            ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Changing password...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+
             FirebaseUser user = mAuth.getCurrentUser();
             if (user == null || user.getEmail() == null) {
+                progressDialog.dismiss();
                 Toast.makeText(this, "No user is signed in or email not found", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!user.isEmailVerified()) {
                 if (!isNetworkAvailable()) {
+                    progressDialog.dismiss();
                     Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(this, "Please verify your email before changing password", Toast.LENGTH_LONG).show();
+                progressDialog.setMessage("Sending verification email...");
                 user.sendEmailVerification()
                         .addOnCompleteListener(task -> {
+                            progressDialog.dismiss();
                             if (task.isSuccessful()) {
                                 Toast.makeText(this, "Verification email sent. Please verify and try again.", Toast.LENGTH_LONG).show();
                             } else {
@@ -86,18 +95,22 @@ public class ChangePasswordActivity extends AppCompatActivity {
             String newPassword = newPasswordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
             if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                progressDialog.dismiss();
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!newPassword.equals(confirmPassword)) {
+                progressDialog.dismiss();
                 Toast.makeText(this, "New passwords do not match", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (newPassword.length() < 6) {
+                progressDialog.dismiss();
                 Toast.makeText(this, "New password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
+                progressDialog.dismiss();
                 Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -106,14 +119,17 @@ public class ChangePasswordActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         user.updatePassword(newPassword)
                                 .addOnSuccessListener(aVoid1 -> {
+                                    progressDialog.dismiss();
                                     Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
                                     finish();
                                 })
                                 .addOnFailureListener(e -> {
+                                    progressDialog.dismiss();
                                     Toast.makeText(this, "Failed to update password: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
                     })
                     .addOnFailureListener(e -> {
+                        progressDialog.dismiss();
                         Toast.makeText(this, "Incorrect current password", Toast.LENGTH_SHORT).show();
                     });
         } catch (Exception e) {
