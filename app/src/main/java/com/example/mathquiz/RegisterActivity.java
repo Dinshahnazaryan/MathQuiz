@@ -5,9 +5,13 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,101 +21,145 @@ import com.google.firebase.auth.FirebaseUser;
 public class RegisterActivity extends AppCompatActivity {
 
     private static final String TAG = "RegisterActivity";
-    private EditText emailInput, passwordInput;
-    private Button registerBtn;
-    private TextView loginLink;
     private FirebaseAuth mAuth;
+    private EditText emailInput, passwordInput, confirmPasswordInput;
+    private Button registerBtn;
+    private TextView loginText;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_register);
+            mAuth = FirebaseAuth.getInstance();
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
+            confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
             registerBtn = findViewById(R.id.registerBtn);
-            loginLink = findViewById(R.id.loginLink);
-            mAuth = FirebaseAuth.getInstance();
-            if (emailInput == null || passwordInput == null || registerBtn == null || loginLink == null) {
-                Log.e(TAG, "One or more views are null: emailInput=" + emailInput + ", passwordInput=" + passwordInput + ", registerBtn=" + registerBtn + ", loginLink=" + loginLink);
+            loginText = findViewById(R.id.loginText);
+            progressBar = findViewById(R.id.progressBar);
+
+            if (emailInput == null || passwordInput == null || confirmPasswordInput == null ||
+                    registerBtn == null || loginText == null || progressBar == null) {
+                Log.e(TAG, "One or more views are null");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+                finish();
                 return;
             }
-            registerBtn.setOnClickListener(v -> registerUser());
-            loginLink.setOnClickListener(v -> {
-                try {
-                    Log.d(TAG, "Navigating to LoginActivity");
-                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Log.e(TAG, "Error navigating to LoginActivity: " + e.getMessage());
-                    Toast.makeText(this, "Navigation error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+            // TextWatcher to prevent SPAN_EXCLUSIVE_EXCLUSIVE errors
+            TextWatcher textWatcher = new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s.length() > 0 && s.toString().trim().isEmpty()) {
+                        EditText editText = (EditText) findViewById(getCurrentFocus() != null ? getCurrentFocus().getId() : R.id.emailInput);
+                        editText.setText(s.toString().trim());
+                        editText.setSelection(editText.getText().length());
+                    }
                 }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            };
+            emailInput.addTextChangedListener(textWatcher);
+            passwordInput.addTextChangedListener(textWatcher);
+            confirmPasswordInput.addTextChangedListener(textWatcher);
+
+            registerBtn.setOnClickListener(v -> registerUser());
+            loginText.setOnClickListener(v -> {
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             });
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
             Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 
     private void registerUser() {
         try {
+            progressBar.setVisibility(View.VISIBLE);
+            registerBtn.setEnabled(false);
+            loginText.setEnabled(false);
+
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
-            if (email.isEmpty() || password.isEmpty()) {
+            String confirmPassword = confirmPasswordInput.getText().toString().trim();
+
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                loginText.setEnabled(true);
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                loginText.setEnabled(true);
                 Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (!password.equals(confirmPassword)) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                loginText.setEnabled(true);
+                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (password.length() < 6) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                loginText.setEnabled(true);
                 Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                loginText.setEnabled(true);
                 Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
+                        progressBar.setVisibility(View.GONE);
+                        registerBtn.setEnabled(true);
+                        loginText.setEnabled(true);
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if (user != null) {
                                 user.sendEmailVerification()
-                                        .addOnCompleteListener(verificationTask -> {
-                                            if (verificationTask.isSuccessful()) {
-                                                Log.d(TAG, "Verification email sent to " + email);
-                                                Toast.makeText(this, "Verification email sent. Please verify your email.", Toast.LENGTH_LONG).show();
+                                        .addOnCompleteListener(verifyTask -> {
+                                            if (verifyTask.isSuccessful()) {
+                                                Toast.makeText(this, "Registration successful. Please verify your email.", Toast.LENGTH_LONG).show();
                                                 Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 startActivity(intent);
                                                 finish();
                                             } else {
-                                                String errorMsg = verificationTask.getException() != null ? verificationTask.getException().getMessage() : "Unknown error";
-                                                Log.e(TAG, "Failed to send verification email: " + errorMsg);
-                                                Toast.makeText(this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
+                                                Toast.makeText(this, "Failed to send verification email: " + verifyTask.getException().getMessage(), Toast.LENGTH_LONG).show();
                                             }
                                         });
                             } else {
-                                Log.e(TAG, "User is null after registration");
                                 Toast.makeText(this, "Registration failed: User not found", Toast.LENGTH_LONG).show();
                             }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            if (errorMsg.contains("email address is already in use")) {
-                                Toast.makeText(this, "Email is already registered", Toast.LENGTH_LONG).show();
-                            } else if (errorMsg.contains("weak password")) {
-                                Toast.makeText(this, "Password is too weak", Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
-                            }
-                            Log.e(TAG, "Registration failed: " + errorMsg);
+                            Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
                         }
                     });
         } catch (Exception e) {
+            progressBar.setVisibility(View.GONE);
+            registerBtn.setEnabled(true);
+            loginText.setEnabled(true);
             Log.e(TAG, "Error in registerUser: " + e.getMessage(), e);
             Toast.makeText(this, "Registration error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }

@@ -6,6 +6,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,7 +24,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private EditText emailInput, passwordInput;
-    private Button loginBtn, registerBtn, resendVerificationBtn;
+    private Button loginBtn, resendVerificationBtn;
+    private TextView forgotPasswordText;
     private LinearLayout splashLayout, loginLayout;
     private ProgressBar splashProgress;
     private TextView splashText;
@@ -36,33 +39,57 @@ public class LoginActivity extends AppCompatActivity {
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
-            registerBtn = findViewById(R.id.registerBtn);
             resendVerificationBtn = findViewById(R.id.resendVerificationBtn);
+            forgotPasswordText = findViewById(R.id.forgotPasswordText);
             splashLayout = findViewById(R.id.splashLayout);
             loginLayout = findViewById(R.id.loginLayout);
             splashProgress = findViewById(R.id.splashProgress);
             splashText = findViewById(R.id.splashText);
             mAuth = FirebaseAuth.getInstance();
+
             if (emailInput == null || passwordInput == null || loginBtn == null ||
-                    registerBtn == null || resendVerificationBtn == null || splashLayout == null ||
-                    loginLayout == null || splashProgress == null || splashText == null) {
+                    resendVerificationBtn == null || forgotPasswordText == null ||
+                    splashLayout == null || loginLayout == null || splashProgress == null ||
+                    splashText == null) {
                 Log.e(TAG, "One or more views are null");
                 Toast.makeText(this, "Error initializing UI", Toast.LENGTH_LONG).show();
                 return;
             }
+
+
+            TextWatcher textWatcher = new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s.length() > 0 && s.toString().trim().isEmpty()) {
+                        EditText editText = (EditText) findViewById(getCurrentFocus() != null ? getCurrentFocus().getId() : R.id.emailInput);
+                        editText.setText(s.toString().trim());
+                        editText.setSelection(editText.getText().length());
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            };
+            emailInput.addTextChangedListener(textWatcher);
+            passwordInput.addTextChangedListener(textWatcher);
+
             loginBtn.setOnClickListener(v -> loginUser());
-            registerBtn.setOnClickListener(v -> {
+            forgotPasswordText.setOnClickListener(v -> {
                 try {
-                    Log.d(TAG, "Navigating to RegisterActivity");
-                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    Log.d(TAG, "Navigating to ForgotPasswordActivity");
+                    Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 } catch (Exception e) {
-                    Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage());
-                    Toast.makeText(this, "Error opening registration: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error starting ForgotPasswordActivity: " + e.getMessage());
+                    Toast.makeText(this, "Error opening password reset: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
             resendVerificationBtn.setOnClickListener(v -> resendVerificationEmail());
+
             splashProgress.setMax(100);
             new CountDownTimer(3000, 30) {
                 public void onTick(long millisUntilFinished) {
