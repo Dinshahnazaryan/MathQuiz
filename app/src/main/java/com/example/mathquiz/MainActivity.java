@@ -1,14 +1,8 @@
 package com.example.mathquiz;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,18 +14,19 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-
     private static final String TAG = "MainActivity";
+
     private TextView questionProgressText, questionText, resultText, splashText, gradeText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
@@ -39,52 +34,30 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton accountBtn;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout splashLayout;
-    private CountDownTimer questionTimer;
     private ImageView gradeEmoji;
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
-    private String[] questions = {
-            "What is the sum of 130 + 125 + 191?",
-            "If we minus 712 from 1500, how much do we get?",
-            "50 times of 8 is equal to?",
-            "110 divided by 10 is?",
-            "20 + (90 ÷ 2) is equal to?",
-            "The product of 82 and 5 is?",
-            "Find the missing terms in multiple of 3: 3, 6, 9, __, 15",
-            "Solve 24 ÷ 8 + 2.",
-            "Solve: 300 – (150 × 2)",
-            "The product of 121 × 0 × 200 × 25 is",
-            "What is the next prime number after 5?"
-    };
-    private String[][] options = {
-            {"446", "500", "400", "600"},
-            {"788", "700", "1000", "600"},
-            {"400", "500", "450", "350"},
-            {"11", "12", "10", "9"},
-            {"65", "60", "80", "100"},
-            {"410", "400", "500", "300"},
-            {"12", "10", "15", "14"},
-            {"5", "7", "3", "2"},
-            {"0", "150", "100", "200"},
-            {"0", "250", "500", "1000"},
-            {"7", "9", "11", "13"}
-    };
-    private String[] correctAnswersText = {
-            "446", "788", "400", "11", "65", "410", "12", "5", "0", "0", "7"
-    };
-    private int currentQuestion = -1;
-    private int correctCount = 0;
-    private int incorrectCount = 0;
-    private String currentCorrectAnswer;
 
-    @SuppressLint("MissingInflatedId")
+    private ArrayList<Question> questions;
+    private int currentQuestionIndex = 0;
+    private int correctAnswers = 0;
+    private CountDownTimer timer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        Log.d(TAG, "onCreate: Checking user authentication status");
+
+        try {
+            initializeUI();
+            initializeQuestions();
+            startSplashScreen();
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_init_failed, Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    private void initializeUI() {
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -98,276 +71,277 @@ public class MainActivity extends AppCompatActivity {
         accountBtn = findViewById(R.id.accountBtn);
         resultText = findViewById(R.id.resultText);
         splashText = findViewById(R.id.splashText);
+        gradeText = findViewById(R.id.gradeText);
         timerProgress = findViewById(R.id.timerProgress);
         splashProgress = findViewById(R.id.splashProgress);
         splashLayout = findViewById(R.id.splashLayout);
-        gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
-        if (questionProgressText == null || questionText == null || answerOptions == null ||
-                option1 == null || option2 == null || option3 == null || option4 == null ||
-                submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
-                resultText == null || splashText == null || timerProgress == null ||
-                splashProgress == null || splashLayout == null || gradeText == null ||
-                gradeEmoji == null) {
-            Log.e(TAG, "One or more UI elements not found");
-            Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
-            return;
-        }
+
+        splashProgress.setMax(100);
+        timerProgress.setMax(100);
+
         startBtn.setOnClickListener(v -> startQuiz());
-        submitAnswerBtn.setOnClickListener(v -> submitAnswer());
-        homeBtn.setOnClickListener(v -> returnToStart());
+        submitAnswerBtn.setOnClickListener(v -> checkAnswer());
+        homeBtn.setOnClickListener(v -> resetQuiz());
         accountBtn.setOnClickListener(v -> {
-            Log.d(TAG, "Account button clicked, visibility: " + (accountBtn.getVisibility() == View.VISIBLE ? "VISIBLE" : "GONE"));
-            if (mAuth.getCurrentUser() == null) {
-                Log.d(TAG, "No user signed in, navigating to RegisterActivity");
-                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
-            } else {
-                Log.d(TAG, "User signed in, navigating to AccountActivity");
+            try {
                 Intent intent = new Intent(MainActivity.this, AccountActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+            } catch (Exception e) {
+                Log.e(TAG, "Error starting AccountActivity: " + e.getMessage(), e);
+                Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
             }
         });
-        splashProgress.setMax(100);
-        new CountDownTimer(3000, 30) {
+    }
+
+    private void startSplashScreen() {
+        new CountDownTimer(3000, 100) {
+            @Override
             public void onTick(long millisUntilFinished) {
-                int progress = (int) ((3000 - millisUntilFinished) / 30);
-                if (splashProgress != null) splashProgress.setProgress(progress);
+                splashProgress.setProgress((int) (100 - (millisUntilFinished / 30)));
             }
 
+            @Override
             public void onFinish() {
-                Log.d(TAG, "Splash screen finished, updating UI visibility");
-                if (mAuth.getCurrentUser() == null) {
-                    Log.d(TAG, "No user signed in, navigating to RegisterActivity");
-                    Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                try {
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    Intent intent;
+                    if (user != null && user.isEmailVerified()) {
+                        intent = new Intent(MainActivity.this, AccountActivity.class);
+                    } else {
+                        intent = new Intent(MainActivity.this, LoginActivity.class);
+                    }
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();
-                } else {
-                    if (splashLayout != null) splashLayout.setVisibility(View.GONE);
-                    if (questionText != null) questionText.setVisibility(View.VISIBLE);
-                    if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-                    if (resultText != null) resultText.setVisibility(View.VISIBLE);
-                    if (accountBtn != null) {
-                        accountBtn.setVisibility(View.VISIBLE);
-                        Log.d(TAG, "Account button set to VISIBLE after splash");
-                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting activity: " + e.getMessage(), e);
+                    Toast.makeText(MainActivity.this, R.string.nav_error, Toast.LENGTH_LONG).show();
+                    finish();
                 }
             }
         }.start();
     }
 
+    private void initializeQuestions() {
+        questions = new ArrayList<>();
+        Random rand = new Random();
+        for (int i = 0; i < 11; i++) {
+            int num1 = rand.nextInt(100) + 1;
+            int num2 = rand.nextInt(100) + 1;
+            String operator = (rand.nextInt(2) == 0) ? "+" : "-";
+            int correctAnswer = operator.equals("+") ? num1 + num2 : num1 - num2;
+            String question = num1 + " " + operator + " " + num2 + " = ?";
+            ArrayList<String> options = new ArrayList<>();
+            options.add(String.valueOf(correctAnswer));
+            options.add(String.valueOf(correctAnswer + rand.nextInt(10) + 1));
+            options.add(String.valueOf(correctAnswer - rand.nextInt(10) - 1));
+            options.add(String.valueOf(correctAnswer + rand.nextInt(20) - 10));
+            Collections.shuffle(options);
+            questions.add(new Question(question, options, options.indexOf(String.valueOf(correctAnswer))));
+        }
+    }
+
     private void startQuiz() {
-        if (!isNetworkAvailable()) {
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        List<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < questions.length; i++) {
-            indices.add(i);
-        }
-        Collections.shuffle(indices);
-        String[] shuffledQuestions = new String[questions.length];
-        String[][] shuffledOptions = new String[options.length][];
-        String[] shuffledCorrectAnswersText = new String[correctAnswersText.length];
-        for (int i = 0; i < indices.size(); i++) {
-            int index = indices.get(i);
-            shuffledQuestions[i] = questions[index];
-            shuffledOptions[i] = options[index];
-            shuffledCorrectAnswersText[i] = correctAnswersText[index];
-        }
-        questions = shuffledQuestions;
-        options = shuffledOptions;
-        correctAnswersText = shuffledCorrectAnswersText;
-        currentQuestion = 0;
-        correctCount = 0;
-        incorrectCount = 0;
-        if (resultText != null) resultText.setText("");
-        if (gradeText != null) gradeText.setText("");
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.GONE);
-        if (startBtn != null) startBtn.setVisibility(View.GONE);
-        if (homeBtn != null) homeBtn.setVisibility(View.GONE);
-        if (accountBtn != null) accountBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.VISIBLE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.VISIBLE);
-        if (timerProgress != null) timerProgress.setVisibility(View.VISIBLE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.VISIBLE);
-        updateQuestionProgress();
-        showNextQuestion();
-    }
-
-    private void showNextQuestion() {
-        if (currentQuestion < questions.length) {
-            if (questionText != null) questionText.setText(questions[currentQuestion]);
-            updateQuestionProgress();
-            List<String> currentOptionsList = new ArrayList<>();
-            Collections.addAll(currentOptionsList, options[currentQuestion]);
-            Collections.shuffle(currentOptionsList);
-            if (option1 != null) option1.setText(currentOptionsList.get(0));
-            if (option2 != null) option2.setText(currentOptionsList.get(1));
-            if (option3 != null) option3.setText(currentOptionsList.get(2));
-            if (option4 != null) option4.setText(currentOptionsList.get(3));
-            currentCorrectAnswer = correctAnswersText[currentQuestion];
-            if (option1 != null) option1.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option2 != null) option2.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option3 != null) option3.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option4 != null) option4.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (answerOptions != null) answerOptions.clearCheck();
-            startQuestionTimer();
-        } else {
-            showResults();
+        try {
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            splashLayout.setVisibility(View.GONE);
+            startBtn.setVisibility(View.GONE);
+            questionProgressText.setVisibility(View.VISIBLE);
+            questionText.setVisibility(View.VISIBLE);
+            answerOptions.setVisibility(View.VISIBLE);
+            submitAnswerBtn.setVisibility(View.VISIBLE);
+            timerProgress.setVisibility(View.VISIBLE);
+            displayQuestion();
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting quiz: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
     }
 
-    private void startQuestionTimer() {
-        if (questionTimer != null) {
-            questionTimer.cancel();
+    private void displayQuestion() {
+        try {
+            Question q = questions.get(currentQuestionIndex);
+            questionProgressText.setText((currentQuestionIndex + 1) + "/11");
+            questionText.setText(q.getQuestion());
+            option1.setText(q.getOptions().get(0));
+            option2.setText(q.getOptions().get(1));
+            option3.setText(q.getOptions().get(2));
+            option4.setText(q.getOptions().get(3));
+            answerOptions.clearCheck();
+            resetRadioButtonBackgrounds();
+            startTimer();
+        } catch (Exception e) {
+            Log.e(TAG, "Error displaying question: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
-        if (timerProgress != null) timerProgress.setMax(100);
-        questionTimer = new CountDownTimer(15000, 150) {
+    }
+
+    private void startTimer() {
+        if (timer != null) {
+            timer.cancel();
+        }
+        timerProgress.setProgress(100);
+        timer = new CountDownTimer(15000, 100) {
+            @Override
             public void onTick(long millisUntilFinished) {
-                int progress = (int) ((15000 - millisUntilFinished) / 150);
-                if (timerProgress != null) timerProgress.setProgress(progress);
+                timerProgress.setProgress((int) (millisUntilFinished / 150));
             }
 
+            @Override
             public void onFinish() {
-                incorrectCount++;
-                if (resultText != null) resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
-                highlightCorrectAnswer();
-                currentQuestion++;
-                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
+                checkAnswer();
             }
         }.start();
     }
 
-    private void submitAnswer() {
-        if (answerOptions == null) return;
-        int selectedId = answerOptions.getCheckedRadioButtonId();
-        if (selectedId == -1) {
-            Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
-            return;
+    private void checkAnswer() {
+        try {
+            if (timer != null) {
+                timer.cancel();
+            }
+            int selectedId = answerOptions.getCheckedRadioButtonId();
+            if (selectedId == -1) {
+                moveToNextQuestion();
+                return;
+            }
+            RadioButton selectedOption = findViewById(selectedId);
+            int selectedIndex = answerOptions.indexOfChild(selectedOption);
+            Question q = questions.get(currentQuestionIndex);
+            if (selectedIndex == q.getCorrectAnswerIndex()) {
+                selectedOption.setBackgroundResource(R.color.green);
+                correctAnswers++;
+            } else {
+                selectedOption.setBackgroundResource(R.color.red);
+                RadioButton correctOption = (RadioButton) answerOptions.getChildAt(q.getCorrectAnswerIndex());
+                correctOption.setBackgroundResource(R.color.green);
+            }
+            submitAnswerBtn.setEnabled(false);
+            new CountDownTimer(1000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {}
+
+                @Override
+                public void onFinish() {
+                    submitAnswerBtn.setEnabled(true);
+                    moveToNextQuestion();
+                }
+            }.start();
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking answer: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
-        if (questionTimer != null) {
-            questionTimer.cancel();
-        }
-        RadioButton selectedOption = findViewById(selectedId);
-        if (selectedOption == null) return;
-        String selectedAnswerText = selectedOption.getText().toString();
-        if (selectedAnswerText.equals(currentCorrectAnswer)) {
-            correctCount++;
-            if (resultText != null) resultText.setText("Correct!");
-            selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
-        } else {
-            incorrectCount++;
-            if (resultText != null) resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
-            selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
-            highlightCorrectAnswer();
-        }
-        currentQuestion++;
-        new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
     }
 
-    private void highlightCorrectAnswer() {
-        for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
-            if (option != null && option.getText().toString().equals(currentCorrectAnswer)) {
-                option.setBackgroundColor(getResources().getColor(R.color.green));
+    private void moveToNextQuestion() {
+        try {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.size()) {
+                displayQuestion();
+            } else {
+                showResults();
             }
+        } catch (Exception e) {
+            Log.e(TAG, "Error moving to next question: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
     }
 
     private void showResults() {
-        if (resultText != null) {
-            resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
-        }
-        if (gradeText != null && gradeEmoji != null) {
-            if (correctCount <= 3) {
-                gradeText.setText("Bad");
-                gradeEmoji.setImageResource(R.drawable.bad);
-            } else if (correctCount <= 6) {
-                gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.norm);
-            } else if (correctCount <= 10) {
-                gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.good);
-            } else {
-                gradeText.setText("Excellent");
-                gradeEmoji.setImageResource(R.drawable.excellent);
-            }
-        }
-        if (gradeText != null) gradeText.setVisibility(View.VISIBLE);
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.VISIBLE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.GONE);
-        if (timerProgress != null) timerProgress.setVisibility(View.GONE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.GONE);
-        if (questionText != null) questionText.setVisibility(View.GONE);
-        if (homeBtn != null) homeBtn.setVisibility(View.VISIBLE);
-        if (accountBtn != null) {
-            accountBtn.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Account button set to VISIBLE in showResults");
-        }
-        if (mAuth.getCurrentUser() != null) {
-            String userId = mAuth.getCurrentUser().getUid();
-            Map<String, Object> scoreData = new HashMap<>();
-            scoreData.put("correct", correctCount);
-            scoreData.put("incorrect", incorrectCount);
-            scoreData.put("timestamp", System.currentTimeMillis());
-            db.collection("users").document(userId).collection("scores")
-                    .add(scoreData)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to save score: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        }
-    }
-
-    private void returnToStart() {
-        Log.d(TAG, "Home button clicked, resetting quiz");
-        currentQuestion = -1;
-        correctCount = 0;
-        incorrectCount = 0;
-        if (splashLayout != null) splashLayout.setVisibility(View.GONE);
-        if (questionText != null) {
-            questionText.setText("");
-            questionText.setVisibility(View.VISIBLE);
-        }
-        if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-        if (homeBtn != null) homeBtn.setVisibility(View.GONE);
-        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
-        if (resultText != null) {
-            resultText.setText("");
+        try {
+            questionProgressText.setVisibility(View.GONE);
+            questionText.setVisibility(View.GONE);
+            answerOptions.setVisibility(View.GONE);
+            submitAnswerBtn.setVisibility(View.GONE);
+            timerProgress.setVisibility(View.GONE);
             resultText.setVisibility(View.VISIBLE);
+            gradeText.setVisibility(View.VISIBLE);
+            gradeEmoji.setVisibility(View.VISIBLE);
+            homeBtn.setVisibility(View.VISIBLE);
+
+            double percentage = (correctAnswers / 11.0) * 100;
+            String grade;
+            int emojiResId;
+            if (percentage >= 90) {
+                grade = "A";
+                emojiResId = R.drawable.excellent;
+            } else if (percentage >= 80) {
+                grade = "B";
+                emojiResId = R.drawable.good;
+            } else if (percentage >= 70) {
+                grade = "C";
+                emojiResId = R.drawable.norm;
+            } else {
+                grade = "F";
+                emojiResId = R.drawable.bad;
+            }
+
+            gradeText.setText(grade);
+            gradeEmoji.setImageResource(emojiResId);
+            resultText.setText(String.format("You got %d out of 11 correct (%.1f%%)", correctAnswers, percentage));
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing results: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
-        if (gradeText != null) gradeText.setVisibility(View.GONE);
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.GONE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.GONE);
-        if (timerProgress != null) timerProgress.setVisibility(View.GONE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.GONE);
     }
 
-    private void updateQuestionProgress() {
-        if (questionProgressText != null) {
-            questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
+    private void resetQuiz() {
+        try {
+            questionProgressText.setVisibility(View.GONE);
+            questionText.setVisibility(View.VISIBLE);
+            answerOptions.setVisibility(View.GONE);
+            submitAnswerBtn.setVisibility(View.GONE);
+            timerProgress.setVisibility(View.GONE);
+            resultText.setVisibility(View.GONE);
+            gradeText.setVisibility(View.GONE);
+            gradeEmoji.setVisibility(View.GONE);
+            homeBtn.setVisibility(View.GONE);
+            startBtn.setVisibility(View.VISIBLE);
+            questionText.setText("Press Start to begin the quiz");
+            initializeQuestions();
+        } catch (Exception e) {
+            Log.e(TAG, "Error resetting quiz: " + e.getMessage(), e);
+            Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
         }
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    private void resetRadioButtonBackgrounds() {
+        option1.setBackgroundResource(R.drawable.radiobutton_selector);
+        option2.setBackgroundResource(R.drawable.radiobutton_selector);
+        option3.setBackgroundResource(R.drawable.radiobutton_selector);
+        option4.setBackgroundResource(R.drawable.radiobutton_selector);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (questionTimer != null) {
-            questionTimer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    private static class Question {
+        private String question;
+        private ArrayList<String> options;
+        private int correctAnswerIndex;
+
+        public Question(String question, ArrayList<String> options, int correctAnswerIndex) {
+            this.question = question;
+            this.options = options;
+            this.correctAnswerIndex = correctAnswerIndex;
+        }
+
+        public String getQuestion() {
+            return question;
+        }
+
+        public ArrayList<String> getOptions() {
+            return options;
+        }
+
+        public int getCorrectAnswerIndex() {
+            return correctAnswerIndex;
         }
     }
 }

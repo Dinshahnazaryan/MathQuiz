@@ -20,4 +20,6 @@
     <item name="homeBtn" type="id" />
     <item name="accountBtn" type="id" />
     <item name="questionProgressText" type="id" />
+    <item name="resendCodeText" type="id" />
+    <item name="confirmPasswordEditText" type="id" />
 </resources>

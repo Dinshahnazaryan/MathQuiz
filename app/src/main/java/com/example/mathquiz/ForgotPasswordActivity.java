@@ -19,7 +19,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Random;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
-
     private static final String TAG = "ForgotPasswordActivity";
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -27,16 +26,20 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     private Button sendCodeButton, cancelButton;
     private ProgressBar progressBar;
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("StringFormatInvalid")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_forgot_password);
             Toolbar toolbar = findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
+            if (toolbar != null) {
+                setSupportActionBar(toolbar);
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                    getSupportActionBar().setTitle("");
+                }
+            }
             mAuth = FirebaseAuth.getInstance();
             db = FirebaseFirestore.getInstance();
             emailInput = findViewById(R.id.emailInput);
@@ -45,8 +48,10 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             progressBar = findViewById(R.id.progressBar);
 
             if (emailInput == null || sendCodeButton == null || cancelButton == null || progressBar == null) {
-                Log.e(TAG, "One or more views are null");
-                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "UI elements missing: emailInput=" + emailInput +
+                        ", sendCodeButton=" + sendCodeButton + ", cancelButton=" + cancelButton +
+                        ", progressBar=" + progressBar);
+                Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
@@ -55,11 +60,12 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             cancelButton.setOnClickListener(v -> finish());
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.app_init_failed, e.getMessage()), Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
+    @SuppressLint("StringFormatInvalid")
     private void sendVerificationCode() {
         try {
             progressBar.setVisibility(View.VISIBLE);
@@ -71,47 +77,43 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 sendCodeButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.enter_email, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 progressBar.setVisibility(View.GONE);
                 sendCodeButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.invalid_email, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
                 progressBar.setVisibility(View.GONE);
                 sendCodeButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Generate a 6-digit code
             String code = String.format("%06d", new Random().nextInt(999999));
-            long expiryTime = System.currentTimeMillis() + 15 * 60 * 1000; // 15 minutes expiry
+            long expiryTime = System.currentTimeMillis() + 15 * 60 * 1000;
 
-            // Store code in Firestore
             db.collection("reset_codes").document(email)
                     .set(new ResetCode(code, expiryTime))
                     .addOnSuccessListener(aVoid -> {
-                        // Send code via Firebase password reset email (as a fallback)
                         mAuth.sendPasswordResetEmail(email)
                                 .addOnCompleteListener(task -> {
                                     progressBar.setVisibility(View.GONE);
                                     sendCodeButton.setEnabled(true);
                                     cancelButton.setEnabled(true);
                                     if (task.isSuccessful()) {
-                                        Toast.makeText(this, "Verification code sent to your email", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(this, R.string.verification_code_sent, Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(ForgotPasswordActivity.this, VerifyCodeActivity.class);
                                         intent.putExtra("email", email);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                         startActivity(intent);
                                     } else {
                                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                                        Toast.makeText(this, "Failed to send code: " + errorMsg, Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, getString(R.string.code_send_failed, errorMsg), Toast.LENGTH_LONG).show();
                                     }
                                 });
                     })
@@ -119,14 +121,14 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                         sendCodeButton.setEnabled(true);
                         cancelButton.setEnabled(true);
-                        Toast.makeText(this, "Failed to store code: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getString(R.string.code_store_failed, e.getMessage()), Toast.LENGTH_LONG).show();
                     });
         } catch (Exception e) {
             progressBar.setVisibility(View.GONE);
             sendCodeButton.setEnabled(true);
             cancelButton.setEnabled(true);
             Log.e(TAG, "Error in sendVerificationCode: " + e.getMessage(), e);
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.app_error, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -141,7 +143,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         onBackPressed();
         return true;
     }
-
 
     public static class ResetCode {
         public String code;

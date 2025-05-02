@@ -1,5 +1,6 @@
 package com.example.mathquiz;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -19,7 +20,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class RegisterActivity extends AppCompatActivity {
-
     private static final String TAG = "RegisterActivity";
     private FirebaseAuth mAuth;
     private EditText emailInput, passwordInput;
@@ -27,6 +27,7 @@ public class RegisterActivity extends AppCompatActivity {
     private TextView loginText;
     private ProgressBar progressBar;
 
+    @SuppressLint("StringFormatInvalid")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,28 +41,29 @@ public class RegisterActivity extends AppCompatActivity {
             progressBar = findViewById(R.id.progressBar);
 
             if (emailInput == null || passwordInput == null || registerBtn == null || loginText == null || progressBar == null) {
-                Log.e(TAG, "One or more views are null");
-                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "UI elements missing: emailInput=" + emailInput +
+                        ", passwordInput=" + passwordInput + ", registerBtn=" + registerBtn +
+                        ", loginText=" + loginText + ", progressBar=" + progressBar);
+                Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
 
-            // TextWatcher to prevent SPAN_EXCLUSIVE_EXCLUSIVE errors
             TextWatcher textWatcher = new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
                 @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
                     if (s.length() > 0 && s.toString().trim().isEmpty()) {
                         EditText editText = (EditText) findViewById(getCurrentFocus() != null ? getCurrentFocus().getId() : R.id.emailInput);
                         editText.setText(s.toString().trim());
                         editText.setSelection(editText.getText().length());
                     }
                 }
-
-                @Override
-                public void afterTextChanged(Editable s) {}
             };
             emailInput.addTextChangedListener(textWatcher);
             passwordInput.addTextChangedListener(textWatcher);
@@ -69,16 +71,16 @@ public class RegisterActivity extends AppCompatActivity {
             registerBtn.setOnClickListener(v -> registerUser());
             loginText.setOnClickListener(v -> {
                 Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             });
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, "Initialization error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.app_init_failed, e.getMessage()), Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
+    @SuppressLint("StringFormatInvalid")
     private void registerUser() {
         try {
             progressBar.setVisibility(View.VISIBLE);
@@ -92,28 +94,28 @@ public class RegisterActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.invalid_email, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (password.length() < 6) {
+            if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.invalid_password_format, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -128,21 +130,20 @@ public class RegisterActivity extends AppCompatActivity {
                                 user.sendEmailVerification()
                                         .addOnCompleteListener(verifyTask -> {
                                             if (verifyTask.isSuccessful()) {
-                                                Toast.makeText(this, "Registration successful. Please verify your email.", Toast.LENGTH_LONG).show();
+                                                Toast.makeText(this, R.string.registration_successful, Toast.LENGTH_LONG).show();
                                                 Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 startActivity(intent);
                                                 finish();
                                             } else {
-                                                Toast.makeText(this, "Failed to send verification email: " + verifyTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                                Toast.makeText(this, getString(R.string.verification_email_failed, verifyTask.getException().getMessage()), Toast.LENGTH_LONG).show();
                                             }
                                         });
                             } else {
-                                Toast.makeText(this, "Registration failed: User not found", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, R.string.registration_failed, Toast.LENGTH_LONG).show();
                             }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, getString(R.string.registration_failed_with_error, errorMsg), Toast.LENGTH_LONG).show();
                         }
                     });
         } catch (Exception e) {
@@ -150,7 +151,7 @@ public class RegisterActivity extends AppCompatActivity {
             registerBtn.setEnabled(true);
             loginText.setEnabled(true);
             Log.e(TAG, "Error in registerUser: " + e.getMessage(), e);
-            Toast.makeText(this, "Registration error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.registration_error, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
