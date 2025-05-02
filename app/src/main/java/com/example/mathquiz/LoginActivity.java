@@ -1,7 +1,6 @@
 package com.example.mathquiz;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -17,10 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
@@ -32,7 +27,6 @@ public class LoginActivity extends AppCompatActivity {
     private LinearLayout splashLayout, loginLayout;
 
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +35,6 @@ public class LoginActivity extends AppCompatActivity {
 
         try {
             mAuth = FirebaseAuth.getInstance();
-            db = FirebaseFirestore.getInstance();
             initializeUI();
             startSplashScreen();
         } catch (Exception e) {
@@ -136,44 +129,17 @@ public class LoginActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             Log.d(TAG, "Login successful for: " + user.getEmail());
-                            // Log login to Firestore
-                            Map<String, Object> loginData = new HashMap<>();
-                            loginData.put("email", user.getEmail());
-                            loginData.put("timestamp", System.currentTimeMillis());
-                            loginData.put("device_model", Build.MODEL);
-                            loginData.put("os_version", Build.VERSION.RELEASE);
-
-                            db.collection("login_attempts")
-                                    .add(loginData)
-                                    .addOnSuccessListener(documentReference -> {
-                                        Log.d(TAG, "Login recorded in Firestore for: " + user.getEmail());
-                                        // Navigate to MainActivity
-                                        try {
-                                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                            intent.putExtra("email", user.getEmail());
-                                            startActivity(intent);
-                                            Log.d(TAG, "Navigating to MainActivity for: " + user.getEmail());
-                                            finish();
-                                        } catch (Exception e) {
-                                            Log.e(TAG, "Error starting MainActivity: " + e.getMessage(), e);
-                                            Toast.makeText(LoginActivity.this, R.string.nav_error, Toast.LENGTH_SHORT).show();
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e(TAG, "Failed to record login in Firestore: " + e.getMessage(), e);
-                                        Toast.makeText(LoginActivity.this, "Error logging login", Toast.LENGTH_SHORT).show();
-                                        // Still navigate to MainActivity
-                                        try {
-                                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                            intent.putExtra("email", user.getEmail());
-                                            startActivity(intent);
-                                            Log.d(TAG, "Navigating to MainActivity for: " + user.getEmail());
-                                            finish();
-                                        } catch (Exception ex) {
-                                            Log.e(TAG, "Error starting MainActivity: " + ex.getMessage(), ex);
-                                            Toast.makeText(LoginActivity.this, R.string.nav_error, Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            Toast.makeText(LoginActivity.this, "Someone logged in with " + user.getEmail(), Toast.LENGTH_LONG).show();
+                            try {
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.putExtra("email", user.getEmail());
+                                startActivity(intent);
+                                Log.d(TAG, "Navigating to MainActivity for: " + user.getEmail());
+                                finish();
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error starting MainActivity: " + e.getMessage(), e);
+                                Toast.makeText(LoginActivity.this, R.string.nav_error, Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Log.e(TAG, "User is null after successful login");
                             Toast.makeText(LoginActivity.this, "User not found", Toast.LENGTH_LONG).show();
