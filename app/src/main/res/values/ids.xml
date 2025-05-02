@@ -22,4 +22,9 @@
     <item name="questionProgressText" type="id" />
     <item name="resendCodeText" type="id" />
     <item name="confirmPasswordEditText" type="id" />
+    <item name="backArrowBtn" type="id" />
+    <item name="emailText" type="id" />
+    <item name="changePasswordBtn" type="id" />
+    <item name="logoutButton" type="id" />
+    <item name="quizResultsText" type="id" />
 </resources>

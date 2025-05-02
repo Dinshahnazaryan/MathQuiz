@@ -95,33 +95,42 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 return;
             }
 
+            // Generate verification code
             String code = String.format("%06d", new Random().nextInt(999999));
             long expiryTime = System.currentTimeMillis() + 15 * 60 * 1000;
 
-            db.collection("reset_codes").document(email)
-                    .set(new ResetCode(code, expiryTime))
-                    .addOnSuccessListener(aVoid -> {
-                        mAuth.sendPasswordResetEmail(email)
-                                .addOnCompleteListener(task -> {
-                                    progressBar.setVisibility(View.GONE);
-                                    sendCodeButton.setEnabled(true);
-                                    cancelButton.setEnabled(true);
-                                    if (task.isSuccessful()) {
+            // Send password reset email first
+            mAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Password reset email sent successfully to: " + email);
+                            // Store code in Firestore after email is sent
+                            db.collection("reset_codes").document(email)
+                                    .set(new ResetCode(code, expiryTime))
+                                    .addOnSuccessListener(aVoid -> {
+                                        progressBar.setVisibility(View.GONE);
+                                        sendCodeButton.setEnabled(true);
+                                        cancelButton.setEnabled(true);
                                         Toast.makeText(this, R.string.verification_code_sent, Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(ForgotPasswordActivity.this, VerifyCodeActivity.class);
                                         intent.putExtra("email", email);
                                         startActivity(intent);
-                                    } else {
-                                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                                        Toast.makeText(this, getString(R.string.code_send_failed, errorMsg), Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                    })
-                    .addOnFailureListener(e -> {
-                        progressBar.setVisibility(View.GONE);
-                        sendCodeButton.setEnabled(true);
-                        cancelButton.setEnabled(true);
-                        Toast.makeText(this, getString(R.string.code_store_failed, e.getMessage()), Toast.LENGTH_LONG).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        progressBar.setVisibility(View.GONE);
+                                        sendCodeButton.setEnabled(true);
+                                        cancelButton.setEnabled(true);
+                                        Log.e(TAG, "Failed to store reset code: " + e.getMessage(), e);
+                                        Toast.makeText(this, getString(R.string.code_store_failed, e.getMessage()), Toast.LENGTH_LONG).show();
+                                    });
+                        } else {
+                            progressBar.setVisibility(View.GONE);
+                            sendCodeButton.setEnabled(true);
+                            cancelButton.setEnabled(true);
+                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                            Log.e(TAG, "Failed to send password reset email: " + errorMsg, task.getException());
+                            Toast.makeText(this, getString(R.string.code_send_failed, errorMsg), Toast.LENGTH_LONG).show();
+                        }
                     });
         } catch (Exception e) {
             progressBar.setVisibility(View.GONE);

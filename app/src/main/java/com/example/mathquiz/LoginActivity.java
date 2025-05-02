@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,8 +21,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
 
     private EditText emailInput, passwordInput;
-    private Button loginBtn, resendVerificationBtn, registerBtn;
-    private ImageButton backArrowBtn;
+    private Button loginBtn, registerBtn;
     private TextView forgotPasswordText;
     private ProgressBar progressBar, splashProgress;
     private LinearLayout splashLayout, loginLayout;
@@ -50,47 +48,50 @@ public class LoginActivity extends AppCompatActivity {
         emailInput = findViewById(R.id.emailInput);
         passwordInput = findViewById(R.id.passwordInput);
         loginBtn = findViewById(R.id.loginBtn);
-        resendVerificationBtn = findViewById(R.id.resendVerificationBtn);
         registerBtn = findViewById(R.id.registerBtn);
-        backArrowBtn = findViewById(R.id.backArrowBtn);
         forgotPasswordText = findViewById(R.id.forgotPasswordText);
         progressBar = findViewById(R.id.progressBar);
         splashProgress = findViewById(R.id.splashProgress);
         splashLayout = findViewById(R.id.splashLayout);
         loginLayout = findViewById(R.id.loginLayout);
 
+        if (emailInput == null || passwordInput == null || loginBtn == null ||
+                forgotPasswordText == null || progressBar == null ||
+                splashProgress == null || splashLayout == null || loginLayout == null) {
+            Log.e(TAG, "UI elements missing");
+            Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         loginBtn.setOnClickListener(v -> loginUser());
         forgotPasswordText.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
                 startActivity(intent);
+                Log.d(TAG, "Navigating to ForgottenPasswordActivity");
             } catch (Exception e) {
-                Log.e(TAG, "Error starting ForgotPasswordActivity: " + e.getMessage(), e);
+                Log.e(TAG, "Error starting ForgottenPasswordActivity: " + e.getMessage(), e);
                 Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
             }
         });
-        resendVerificationBtn.setOnClickListener(v -> resendVerificationEmail());
-        registerBtn.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(intent);
-            } catch (Exception e) {
-                Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage(), e);
-                Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
-            }
-        });
-        backArrowBtn.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(intent);
-            } catch (Exception e) {
-                Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage(), e);
-                Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
-            }
-        });
+
+        if (registerBtn != null) {
+            registerBtn.setOnClickListener(v -> {
+                try {
+                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    startActivity(intent);
+                    Log.d(TAG, "Navigating to RegisterActivity");
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage(), e);
+                    Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void startSplashScreen() {
+        Log.d(TAG, "Starting login splash screen");
         new CountDownTimer(3000, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -101,7 +102,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onFinish() {
                 splashLayout.setVisibility(View.GONE);
                 loginLayout.setVisibility(View.VISIBLE);
-                backArrowBtn.setVisibility(View.VISIBLE);
+                Log.d(TAG, "Login screen displayed");
             }
         }.start();
     }
@@ -117,6 +118,7 @@ public class LoginActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
         loginBtn.setEnabled(false);
+        Log.d(TAG, "Attempting login for: " + email);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
@@ -125,39 +127,28 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null && user.isEmailVerified()) {
+                        if (user != null) {
+                            Log.d(TAG, "Login successful for: " + user.getEmail());
+                            Toast.makeText(LoginActivity.this, "Someone logged in with " + user.getEmail(), Toast.LENGTH_LONG).show();
                             try {
-                                Intent intent = new Intent(LoginActivity.this, AccountActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.putExtra("email", user.getEmail());
                                 startActivity(intent);
+                                Log.d(TAG, "Navigating to MainActivity for: " + user.getEmail());
                                 finish();
                             } catch (Exception e) {
-                                Log.e(TAG, "Error starting AccountActivity: " + e.getMessage(), e);
+                                Log.e(TAG, "Error starting MainActivity: " + e.getMessage(), e);
                                 Toast.makeText(LoginActivity.this, R.string.nav_error, Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            resendVerificationBtn.setVisibility(View.VISIBLE);
-                            Toast.makeText(LoginActivity.this, "Please verify your email", Toast.LENGTH_LONG).show();
+                            Log.e(TAG, "User is null after successful login");
+                            Toast.makeText(LoginActivity.this, "User not found", Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Log.e(TAG, "Login failed: " + errorMsg, task.getException());
+                        Toast.makeText(LoginActivity.this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    private void resendVerificationEmail() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            user.sendEmailVerification()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(LoginActivity.this, "Verification email sent", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Failed to send verification email", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            Toast.makeText(LoginActivity.this, R.string.please_sign_in, Toast.LENGTH_SHORT).show();
-        }
     }
 }

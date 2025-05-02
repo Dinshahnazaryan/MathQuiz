@@ -1,107 +1,158 @@
 package com.example.mathquiz;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class AccountActivity extends AppCompatActivity {
     private static final String TAG = "AccountActivity";
-    private FirebaseAuth mAuth;
-    private TextView emailTextView, accountTitle;
-    private ImageButton passwordNavButton;
-    private Button signOutButton;
 
-    @SuppressLint("StringFormatInvalid")
+    private TextView emailText, quizResultsText;
+    private EditText passwordInput;
+    private Button changePasswordBtn, logoutButton;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_account);
+
         try {
-            setContentView(R.layout.activity_account);
-            Log.d(TAG, "onCreate started");
             mAuth = FirebaseAuth.getInstance();
-            Toolbar toolbar = findViewById(R.id.toolbar);
-            if (toolbar != null) {
-                setSupportActionBar(toolbar);
-                if (getSupportActionBar() != null) {
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                    getSupportActionBar().setTitle("");
-                }
-            }
-
-            accountTitle = findViewById(R.id.accountTitle);
-            emailTextView = findViewById(R.id.emailTextView);
-            passwordNavButton = findViewById(R.id.passwordNavButton);
-            signOutButton = findViewById(R.id.signOutButton);
-
-            if (emailTextView == null || passwordNavButton == null || signOutButton == null || accountTitle == null) {
-                Log.e(TAG, "UI elements missing: emailTextView=" + emailTextView +
-                        ", passwordNavButton=" + passwordNavButton + ", signOutButton=" + signOutButton +
-                        ", accountTitle=" + accountTitle);
-                Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
-                finish();
-                return;
-            }
-
-            accountTitle.setText(R.string.account_info);
-            if (mAuth.getCurrentUser() == null) {
-                Log.d(TAG, "No user signed in");
-                emailTextView.setText(R.string.no_user_signed_in);
-                passwordNavButton.setEnabled(false);
-                signOutButton.setEnabled(false);
-                Toast.makeText(this, R.string.please_sign_in, Toast.LENGTH_LONG).show();
-            } else {
-                String userEmail = mAuth.getCurrentUser().getEmail();
-                Log.d(TAG, "User signed in: " + userEmail);
-                emailTextView.setText(getString(R.string.email, userEmail != null ? userEmail : "Unknown"));
-                passwordNavButton.setOnClickListener(v -> {
-                    Log.d(TAG, "Navigating to PasswordOptionsActivity");
-                    try {
-                        startActivity(new Intent(AccountActivity.this, PasswordOptionsActivity.class));
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error starting PasswordOptionsActivity: " + e.getMessage(), e);
-                        Toast.makeText(this, getString(R.string.nav_error, e.getMessage()), Toast.LENGTH_LONG).show();
-                    }
-                });
-                signOutButton.setOnClickListener(v -> {
-                    Log.d(TAG, "Sign out clicked");
-                    mAuth.signOut();
-                    Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                    finish();
-                });
-            }
+            db = FirebaseFirestore.getInstance();
+            initializeUI();
+            loadUserData();
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, getString(R.string.app_init_failed, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.app_init_failed, Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        Log.d(TAG, "Back arrow clicked");
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
-        return true;
+    private void initializeUI() {
+        emailText = findViewById(R.id.emailText);
+        passwordInput = findViewById(R.id.passwordInput);
+        changePasswordBtn = findViewById(R.id.changePasswordBtn);
+        quizResultsText = findViewById(R.id.quizResultsText);
+        logoutButton = findViewById(R.id.logoutButton);
+
+        if (emailText == null || passwordInput == null || changePasswordBtn == null ||
+                quizResultsText == null || logoutButton == null) {
+            Log.e(TAG, "UI elements missing");
+            Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        changePasswordBtn.setOnClickListener(v -> changePassword());
+        logoutButton.setOnClickListener(v -> {
+            try {
+                mAuth.signOut();
+                Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                Log.d(TAG, "User logged out, navigated to LoginActivity");
+            } catch (Exception e) {
+                Log.e(TAG, "Error during logout: " + e.getMessage(), e);
+                Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "System back pressed");
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
+    private void changePassword() {
+        String newPassword = passwordInput.getText().toString().trim();
+        if (newPassword.isEmpty()) {
+            Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!newPassword.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
+            Toast.makeText(this, R.string.invalid_password_format, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Log.e(TAG, "No user logged in, cannot change password");
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        changePasswordBtn.setEnabled(false);
+        user.updatePassword(newPassword)
+                .addOnCompleteListener(task -> {
+                    changePasswordBtn.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Password updated for: " + user.getEmail());
+                        Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                        passwordInput.setText("");
+                    } else {
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Log.e(TAG, "Failed to update password: " + errorMsg, task.getException());
+                        Toast.makeText(this, "Failed to update password: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void loadUserData() {
+        String email = getIntent().getStringExtra("email");
+        if (email == null || email.isEmpty()) {
+            Log.e(TAG, "No email provided in Intent");
+            Toast.makeText(this, "User email not found", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        emailText.setText("Email: " + email);
+
+        db.collection("user_data").document(email).collection("quizzes")
+                .get()
+                .addOnCompleteListener(task -> {
+                    try {
+                        if (task.isSuccessful()) {
+                            QuerySnapshot querySnapshot = task.getResult();
+                            if (querySnapshot != null && !querySnapshot.isEmpty()) {
+                                long totalQuizzes = querySnapshot.size();
+                                double totalPercentage = 0;
+                                for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                                    Double percentage = document.get("percentage", Double.class);
+                                    if (percentage != null) {
+                                        totalPercentage += percentage;
+                                    }
+                                }
+                                double averagePercentage = totalQuizzes > 0 ? totalPercentage / totalQuizzes : 0;
+                                String results = "Total Quizzes: " + totalQuizzes + "\n" +
+                                        "Average Score: " + String.format("%.1f%%", averagePercentage);
+                                quizResultsText.setText(results);
+                                Log.d(TAG, "Quiz results loaded: " + results);
+                            } else {
+                                quizResultsText.setText("No quiz results found");
+                                Log.d(TAG, "No quiz results found for: " + email);
+                            }
+                        } else {
+                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                            Log.e(TAG, "Failed to load quiz data: " + errorMsg, task.getException());
+                            Toast.makeText(this, "Failed to load data: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing quiz data: " + e.getMessage(), e);
+                        Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

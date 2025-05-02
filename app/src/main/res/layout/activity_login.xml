@@ -36,21 +36,6 @@
             android:contentDescription="Loading Text" />
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/backArrowBtn"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@null"
-        android:contentDescription="Back to Register"
-        android:src="@drawable/ic_arrow_left"
-        android:scaleType="centerInside"
-        android:padding="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFFFF" />
-
     <LinearLayout
         android:id="@+id/loginLayout"
         android:layout_width="0dp"
@@ -143,17 +128,16 @@
             android:contentDescription="Forgot Password Link" />
 
         <Button
-            android:id="@+id/resendVerificationBtn"
+            android:id="@+id/registerBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="16dp"
             android:background="@drawable/button_selector"
             android:padding="12dp"
-            android:text="Resend Verification Email"
+            android:text="Register"
             android:textColor="#1A237E"
             android:textSize="18sp"
-            android:visibility="gone"
-            android:contentDescription="Resend Verification Email Button" />
+            android:contentDescription="Register Button" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
