@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class AccountActivity extends AppCompatActivity {
@@ -23,7 +23,8 @@ public class AccountActivity extends AppCompatActivity {
 
     private TextView emailText, quizResultsText;
     private EditText passwordInput;
-    private Button changePasswordBtn, logoutButton;
+    private Button changePasswordBtn, backToStartBtn;
+    private LinearLayout passwordToggle, passwordChangeLayout;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -46,32 +47,39 @@ public class AccountActivity extends AppCompatActivity {
 
     private void initializeUI() {
         emailText = findViewById(R.id.emailText);
+        passwordToggle = findViewById(R.id.passwordToggle);
+        passwordChangeLayout = findViewById(R.id.passwordChangeLayout);
         passwordInput = findViewById(R.id.passwordInput);
         changePasswordBtn = findViewById(R.id.changePasswordBtn);
         quizResultsText = findViewById(R.id.quizResultsText);
-        logoutButton = findViewById(R.id.logoutButton);
+        backToStartBtn = findViewById(R.id.backToStartBtn);
 
-        if (emailText == null || passwordInput == null || changePasswordBtn == null ||
-                quizResultsText == null || logoutButton == null) {
+        if (emailText == null || passwordToggle == null || passwordChangeLayout == null ||
+                passwordInput == null || changePasswordBtn == null || quizResultsText == null ||
+                backToStartBtn == null) {
             Log.e(TAG, "UI elements missing");
             Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
-        changePasswordBtn.setOnClickListener(v -> changePassword());
-        logoutButton.setOnClickListener(v -> {
-            try {
-                mAuth.signOut();
-                Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-                Log.d(TAG, "User logged out, navigated to LoginActivity");
-            } catch (Exception e) {
-                Log.e(TAG, "Error during logout: " + e.getMessage(), e);
-                Toast.makeText(this, R.string.nav_error, Toast.LENGTH_SHORT).show();
+        passwordToggle.setOnClickListener(v -> {
+            Log.d(TAG, "Password toggle clicked");
+            if (passwordChangeLayout.getVisibility() == View.VISIBLE) {
+                passwordChangeLayout.setVisibility(View.GONE);
+            } else {
+                passwordChangeLayout.setVisibility(View.VISIBLE);
             }
+        });
+
+        changePasswordBtn.setOnClickListener(v -> changePassword());
+
+        backToStartBtn.setOnClickListener(v -> {
+            Log.d(TAG, "Back to Start clicked, navigating to MainActivity");
+            Intent intent = new Intent(AccountActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 
@@ -102,6 +110,7 @@ public class AccountActivity extends AppCompatActivity {
                         Log.d(TAG, "Password updated for: " + user.getEmail());
                         Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
                         passwordInput.setText("");
+                        passwordChangeLayout.setVisibility(View.GONE);
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                         Log.e(TAG, "Failed to update password: " + errorMsg, task.getException());
@@ -111,16 +120,27 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     private void loadUserData() {
-        String email = getIntent().getStringExtra("email");
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Log.e(TAG, "No user logged in");
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        String email = user.getEmail();
         if (email == null || email.isEmpty()) {
-            Log.e(TAG, "No email provided in Intent");
+            Log.e(TAG, "No email found for user");
             Toast.makeText(this, "User email not found", Toast.LENGTH_LONG).show();
             return;
         }
 
         emailText.setText("Email: " + email);
 
-        db.collection("user_data").document(email).collection("quizzes")
+        db.collection("users").document(user.getUid()).collection("scores")
                 .get()
                 .addOnCompleteListener(task -> {
                     try {
@@ -130,9 +150,14 @@ public class AccountActivity extends AppCompatActivity {
                                 long totalQuizzes = querySnapshot.size();
                                 double totalPercentage = 0;
                                 for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-                                    Double percentage = document.get("percentage", Double.class);
-                                    if (percentage != null) {
+                                    Long correct = document.getLong("correct");
+                                    Long incorrect = document.getLong("incorrect");
+                                    Log.d(TAG, "Document: " + document.getId() + ", correct: " + correct + ", incorrect: " + incorrect);
+                                    if (correct != null && incorrect != null && (correct + incorrect) > 0) {
+                                        double percentage = (correct / (double) (correct + incorrect)) * 100;
                                         totalPercentage += percentage;
+                                    } else {
+                                        Log.w(TAG, "Invalid score data for document: " + document.getId());
                                     }
                                 }
                                 double averagePercentage = totalQuizzes > 0 ? totalPercentage / totalQuizzes : 0;

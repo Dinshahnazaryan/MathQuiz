@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
@@ -90,7 +89,7 @@
             android:textSize="24sp"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="8dp"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/timerProgress"
@@ -100,15 +99,15 @@
             android:layout_marginBottom="16dp"
             android:max="100"
             android:progressTint="#FFFFFF"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/questionText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
-            android:text="Press Start to begin the quiz"
             android:gravity="center"
+            android:text="Press Start to begin the quiz"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:visibility="visible" />
@@ -119,7 +118,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:orientation="vertical"
-            android:visibility="visible">
+            android:visibility="gone">
 
             <RadioButton
                 android:id="@+id/option1"
@@ -129,7 +128,7 @@
                 android:background="@drawable/radiobutton_selector"
                 android:padding="10dp"
                 android:text="Option 1"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A237E"
                 android:textSize="18sp" />
 
             <RadioButton
@@ -140,7 +139,7 @@
                 android:background="@drawable/radiobutton_selector"
                 android:padding="10dp"
                 android:text="Option 2"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A237E"
                 android:textSize="18sp" />
 
             <RadioButton
@@ -151,7 +150,7 @@
                 android:background="@drawable/radiobutton_selector"
                 android:padding="10dp"
                 android:text="Option 3"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A237E"
                 android:textSize="18sp" />
 
             <RadioButton
@@ -162,7 +161,7 @@
                 android:background="@drawable/radiobutton_selector"
                 android:padding="10dp"
                 android:text="Option 4"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A237E"
                 android:textSize="18sp" />
         </RadioGroup>
 
@@ -175,23 +174,23 @@
             android:text="Submit Answer"
             android:textColor="#1A237E"
             android:textSize="18sp"
-            android:visibility="visible" />
+            android:visibility="gone" />
     </LinearLayout>
 
     <Button
         android:id="@+id/startBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:background="@drawable/button_selector"
         android:padding="12dp"
         android:text="Start Quiz"
         android:textColor="#1A237E"
         android:textSize="18sp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/quizLayout" />
 
     <LinearLayout
         android:id="@+id/resultLayout"
@@ -203,7 +202,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/quizLayout">
+        app:layout_constraintTop_toBottomOf="@id/startBtn">
 
         <TextView
             android:id="@+id/gradeText"
@@ -213,7 +212,7 @@
             android:gravity="center"
             android:textColor="#FFFFFF"
             android:textSize="30sp"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/gradeEmoji"
@@ -221,7 +220,7 @@
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
             android:contentDescription="Grade Emoji"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/resultText"
@@ -232,7 +231,7 @@
             android:gravity="center"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/homeBtn"
@@ -244,6 +243,6 @@
             android:text="Home"
             android:textColor="#1A237E"
             android:textSize="18sp"
-            android:visibility="visible" />
+            android:visibility="gone" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

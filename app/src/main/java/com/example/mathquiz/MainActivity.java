@@ -38,9 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private Button submitAnswerBtn, startBtn, homeBtn;
     private ImageButton accountBtn;
     private ProgressBar timerProgress, splashProgress;
-    private LinearLayout splashLayout;
+    private LinearLayout splashLayout, quizLayout, resultLayout;
     private CountDownTimer questionTimer;
-    private ImageView gradeEmoji;
+    private ImageView gradeEmoji, splashIcon;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private String[] questions = {
@@ -85,6 +85,11 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         Log.d(TAG, "onCreate: Checking user authentication status");
+
+        // Initialize UI elements
+        splashLayout = findViewById(R.id.splashLayout);
+        quizLayout = findViewById(R.id.quizLayout);
+        resultLayout = findViewById(R.id.resultLayout);
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -100,19 +105,23 @@ public class MainActivity extends AppCompatActivity {
         splashText = findViewById(R.id.splashText);
         timerProgress = findViewById(R.id.timerProgress);
         splashProgress = findViewById(R.id.splashProgress);
-        splashLayout = findViewById(R.id.splashLayout);
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
-        if (questionProgressText == null || questionText == null || answerOptions == null ||
+        splashIcon = findViewById(R.id.splashIcon);
+
+        // Check UI initialization
+        if (splashLayout == null || quizLayout == null || resultLayout == null ||
+                questionProgressText == null || questionText == null || answerOptions == null ||
                 option1 == null || option2 == null || option3 == null || option4 == null ||
                 submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
                 resultText == null || splashText == null || timerProgress == null ||
-                splashProgress == null || splashLayout == null || gradeText == null ||
-                gradeEmoji == null) {
+                splashProgress == null || gradeText == null || gradeEmoji == null || splashIcon == null) {
             Log.e(TAG, "One or more UI elements not found");
             Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
             return;
         }
+
+        // Set click listeners
         startBtn.setOnClickListener(v -> startQuiz());
         submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         homeBtn.setOnClickListener(v -> returnToStart());
@@ -127,15 +136,18 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Log.d(TAG, "User signed in, navigating to AccountActivity");
                 Intent intent = new Intent(MainActivity.this, AccountActivity.class);
+                intent.putExtra("email", mAuth.getCurrentUser().getEmail());
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
+
+        // Splash screen timer
         splashProgress.setMax(100);
         new CountDownTimer(3000, 30) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((3000 - millisUntilFinished) / 30);
-                if (splashProgress != null) splashProgress.setProgress(progress);
+                splashProgress.setProgress(progress);
             }
 
             public void onFinish() {
@@ -147,14 +159,12 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    if (splashLayout != null) splashLayout.setVisibility(View.GONE);
-                    if (questionText != null) questionText.setVisibility(View.VISIBLE);
-                    if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-                    if (resultText != null) resultText.setVisibility(View.VISIBLE);
-                    if (accountBtn != null) {
-                        accountBtn.setVisibility(View.VISIBLE);
-                        Log.d(TAG, "Account button set to VISIBLE after splash");
-                    }
+                    splashLayout.setVisibility(View.GONE);
+                    questionText.setVisibility(View.VISIBLE);
+                    startBtn.setVisibility(View.VISIBLE);
+                    resultText.setVisibility(View.VISIBLE);
+                    accountBtn.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Account button set to VISIBLE after splash");
                 }
             }
         }.start();
@@ -185,37 +195,40 @@ public class MainActivity extends AppCompatActivity {
         currentQuestion = 0;
         correctCount = 0;
         incorrectCount = 0;
-        if (resultText != null) resultText.setText("");
-        if (gradeText != null) gradeText.setText("");
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.GONE);
-        if (startBtn != null) startBtn.setVisibility(View.GONE);
-        if (homeBtn != null) homeBtn.setVisibility(View.GONE);
-        if (accountBtn != null) accountBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.VISIBLE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.VISIBLE);
-        if (timerProgress != null) timerProgress.setVisibility(View.VISIBLE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.VISIBLE);
+        resultText.setText("");
+        gradeText.setText("");
+        gradeEmoji.setVisibility(View.GONE);
+        splashLayout.setVisibility(View.GONE);
+        startBtn.setVisibility(View.GONE);
+        homeBtn.setVisibility(View.GONE);
+        accountBtn.setVisibility(View.VISIBLE); // Keep accountBtn visible during quiz
+        quizLayout.setVisibility(View.VISIBLE);
+        questionProgressText.setVisibility(View.VISIBLE);
+        timerProgress.setVisibility(View.VISIBLE);
+        questionText.setVisibility(View.VISIBLE);
+        answerOptions.setVisibility(View.VISIBLE);
+        submitAnswerBtn.setVisibility(View.VISIBLE);
         updateQuestionProgress();
         showNextQuestion();
     }
 
     private void showNextQuestion() {
         if (currentQuestion < questions.length) {
-            if (questionText != null) questionText.setText(questions[currentQuestion]);
+            questionText.setText(questions[currentQuestion]);
             updateQuestionProgress();
             List<String> currentOptionsList = new ArrayList<>();
             Collections.addAll(currentOptionsList, options[currentQuestion]);
             Collections.shuffle(currentOptionsList);
-            if (option1 != null) option1.setText(currentOptionsList.get(0));
-            if (option2 != null) option2.setText(currentOptionsList.get(1));
-            if (option3 != null) option3.setText(currentOptionsList.get(2));
-            if (option4 != null) option4.setText(currentOptionsList.get(3));
+            option1.setText(currentOptionsList.get(0));
+            option2.setText(currentOptionsList.get(1));
+            option3.setText(currentOptionsList.get(2));
+            option4.setText(currentOptionsList.get(3));
             currentCorrectAnswer = correctAnswersText[currentQuestion];
-            if (option1 != null) option1.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option2 != null) option2.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option3 != null) option3.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (option4 != null) option4.setBackgroundResource(R.drawable.radiobutton_selector);
-            if (answerOptions != null) answerOptions.clearCheck();
+            option1.setBackgroundResource(R.drawable.radiobutton_selector);
+            option2.setBackgroundResource(R.drawable.radiobutton_selector);
+            option3.setBackgroundResource(R.drawable.radiobutton_selector);
+            option4.setBackgroundResource(R.drawable.radiobutton_selector);
+            answerOptions.clearCheck();
             startQuestionTimer();
         } else {
             showResults();
@@ -226,16 +239,16 @@ public class MainActivity extends AppCompatActivity {
         if (questionTimer != null) {
             questionTimer.cancel();
         }
-        if (timerProgress != null) timerProgress.setMax(100);
+        timerProgress.setMax(100);
         questionTimer = new CountDownTimer(15000, 150) {
             public void onTick(long millisUntilFinished) {
                 int progress = (int) ((15000 - millisUntilFinished) / 150);
-                if (timerProgress != null) timerProgress.setProgress(progress);
+                timerProgress.setProgress(progress);
             }
 
             public void onFinish() {
                 incorrectCount++;
-                if (resultText != null) resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
+                resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
                 highlightCorrectAnswer();
                 currentQuestion++;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
@@ -258,11 +271,11 @@ public class MainActivity extends AppCompatActivity {
         String selectedAnswerText = selectedOption.getText().toString();
         if (selectedAnswerText.equals(currentCorrectAnswer)) {
             correctCount++;
-            if (resultText != null) resultText.setText("Correct!");
+            resultText.setText("Correct!");
             selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
         } else {
             incorrectCount++;
-            if (resultText != null) resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
+            resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
             selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
             highlightCorrectAnswer();
         }
@@ -279,36 +292,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showResults() {
-        if (resultText != null) {
-            resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
+        quizLayout.setVisibility(View.GONE);
+        resultLayout.setVisibility(View.VISIBLE);
+        resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
+        if (correctCount <= 3) {
+            gradeText.setText("Bad");
+            gradeEmoji.setImageResource(R.drawable.bad);
+        } else if (correctCount <= 6) {
+            gradeText.setText("Normal");
+            gradeEmoji.setImageResource(R.drawable.norm);
+        } else if (correctCount <= 10) {
+            gradeText.setText("Good");
+            gradeEmoji.setImageResource(R.drawable.good);
+        } else {
+            gradeText.setText("Excellent");
+            gradeEmoji.setImageResource(R.drawable.excellent);
         }
-        if (gradeText != null && gradeEmoji != null) {
-            if (correctCount <= 3) {
-                gradeText.setText("Bad");
-                gradeEmoji.setImageResource(R.drawable.bad);
-            } else if (correctCount <= 6) {
-                gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.norm);
-            } else if (correctCount <= 10) {
-                gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.good);
-            } else {
-                gradeText.setText("Excellent");
-                gradeEmoji.setImageResource(R.drawable.excellent);
-            }
-        }
-        if (gradeText != null) gradeText.setVisibility(View.VISIBLE);
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.VISIBLE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.GONE);
-        if (timerProgress != null) timerProgress.setVisibility(View.GONE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.GONE);
-        if (questionText != null) questionText.setVisibility(View.GONE);
-        if (homeBtn != null) homeBtn.setVisibility(View.VISIBLE);
-        if (accountBtn != null) {
-            accountBtn.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Account button set to VISIBLE in showResults");
-        }
+        gradeText.setVisibility(View.VISIBLE);
+        gradeEmoji.setVisibility(View.VISIBLE);
+        homeBtn.setVisibility(View.VISIBLE);
+        accountBtn.setVisibility(View.VISIBLE);
         if (mAuth.getCurrentUser() != null) {
             String userId = mAuth.getCurrentUser().getUid();
             Map<String, Object> scoreData = new HashMap<>();
@@ -331,30 +334,26 @@ public class MainActivity extends AppCompatActivity {
         currentQuestion = -1;
         correctCount = 0;
         incorrectCount = 0;
-        if (splashLayout != null) splashLayout.setVisibility(View.GONE);
-        if (questionText != null) {
-            questionText.setText("");
-            questionText.setVisibility(View.VISIBLE);
-        }
-        if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-        if (homeBtn != null) homeBtn.setVisibility(View.GONE);
-        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
-        if (resultText != null) {
-            resultText.setText("");
-            resultText.setVisibility(View.VISIBLE);
-        }
-        if (gradeText != null) gradeText.setVisibility(View.GONE);
-        if (gradeEmoji != null) gradeEmoji.setVisibility(View.GONE);
-        if (submitAnswerBtn != null) submitAnswerBtn.setVisibility(View.GONE);
-        if (answerOptions != null) answerOptions.setVisibility(View.GONE);
-        if (timerProgress != null) timerProgress.setVisibility(View.GONE);
-        if (questionProgressText != null) questionProgressText.setVisibility(View.GONE);
+        splashLayout.setVisibility(View.GONE);
+        quizLayout.setVisibility(View.GONE);
+        resultLayout.setVisibility(View.GONE);
+        questionText.setText("");
+        questionText.setVisibility(View.VISIBLE);
+        startBtn.setVisibility(View.VISIBLE);
+        homeBtn.setVisibility(View.GONE);
+        accountBtn.setVisibility(View.VISIBLE);
+        resultText.setText("");
+        resultText.setVisibility(View.VISIBLE);
+        gradeText.setVisibility(View.GONE);
+        gradeEmoji.setVisibility(View.GONE);
+        submitAnswerBtn.setVisibility(View.GONE);
+        answerOptions.setVisibility(View.GONE);
+        timerProgress.setVisibility(View.GONE);
+        questionProgressText.setVisibility(View.GONE);
     }
 
     private void updateQuestionProgress() {
-        if (questionProgressText != null) {
-            questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
-        }
+        questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
     }
 
     private boolean isNetworkAvailable() {
