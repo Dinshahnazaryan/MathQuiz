@@ -20,7 +20,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
     private static final String TAG = "ResetPasswordActivity";
     private FirebaseAuth mAuth;
-    private EditText newPasswordEditText, confirmPasswordEditText;
+    private EditText newPasswordEditText;
     private Button resetButton, cancelButton;
     private ProgressBar progressBar;
     private String email;
@@ -36,13 +36,11 @@ public class ResetPasswordActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("");
             mAuth = FirebaseAuth.getInstance();
             newPasswordEditText = findViewById(R.id.newPasswordEditText);
-            confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
             resetButton = findViewById(R.id.resetButton);
             cancelButton = findViewById(R.id.cancelButton);
             progressBar = findViewById(R.id.progressBar);
 
-            if (newPasswordEditText == null || confirmPasswordEditText == null ||
-                    resetButton == null || cancelButton == null || progressBar == null) {
+            if (newPasswordEditText == null || resetButton == null || cancelButton == null || progressBar == null) {
                 Log.e(TAG, "One or more views are null");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 finish();
@@ -73,19 +71,11 @@ public class ResetPasswordActivity extends AppCompatActivity {
             cancelButton.setEnabled(false);
 
             String newPassword = newPasswordEditText.getText().toString().trim();
-            String confirmPassword = confirmPasswordEditText.getText().toString().trim();
-            if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            if (newPassword.isEmpty()) {
                 progressBar.setVisibility(View.GONE);
                 resetButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (!newPassword.equals(confirmPassword)) {
-                progressBar.setVisibility(View.GONE);
-                resetButton.setEnabled(true);
-                cancelButton.setEnabled(true);
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (newPassword.length() < 6) {
@@ -103,46 +93,40 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 return;
             }
 
-            // Sign in to update password
-            mAuth.signInWithEmailAndPassword(email, newPassword)
-                    .addOnFailureListener(e -> {
-                        // If sign-in fails, try updating password directly
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null && user.getEmail() != null && user.getEmail().equals(email)) {
-                            user.updatePassword(newPassword)
-                                    .addOnSuccessListener(aVoid -> {
-                                        progressBar.setVisibility(View.GONE);
-                                        resetButton.setEnabled(true);
-                                        cancelButton.setEnabled(true);
-                                        Toast.makeText(this, "Password reset successfully", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
-                                        finish();
-                                    })
-                                    .addOnFailureListener(e1 -> {
-                                        progressBar.setVisibility(View.GONE);
-                                        resetButton.setEnabled(true);
-                                        cancelButton.setEnabled(true);
-                                        Toast.makeText(this, "Failed to reset password: " + e1.getMessage(), Toast.LENGTH_LONG).show();
-                                    });
-                        } else {
-                            // No user signed in, try Firebase password reset
-                            mAuth.sendPasswordResetEmail(email)
-                                    .addOnCompleteListener(task -> {
-                                        progressBar.setVisibility(View.GONE);
-                                        resetButton.setEnabled(true);
-                                        cancelButton.setEnabled(true);
-                                        if (task.isSuccessful()) {
-                                            Toast.makeText(this, "Password reset email sent as fallback", Toast.LENGTH_LONG).show();
-                                            finish();
-                                        } else {
-                                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                                            Toast.makeText(this, "Failed to reset password: " + errorMsg, Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                        }
-                    });
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null && user.getEmail() != null && user.getEmail().equals(email)) {
+                user.updatePassword(newPassword)
+                        .addOnSuccessListener(aVoid -> {
+                            progressBar.setVisibility(View.GONE);
+                            resetButton.setEnabled(true);
+                            cancelButton.setEnabled(true);
+                            Toast.makeText(this, "Password reset successfully", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(View.GONE);
+                            resetButton.setEnabled(true);
+                            cancelButton.setEnabled(true);
+                            Toast.makeText(this, "Failed to reset password: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+            } else {
+                mAuth.sendPasswordResetEmail(email)
+                        .addOnCompleteListener(task -> {
+                            progressBar.setVisibility(View.GONE);
+                            resetButton.setEnabled(true);
+                            cancelButton.setEnabled(true);
+                            if (task.isSuccessful()) {
+                                Toast.makeText(this, "Password reset email sent", Toast.LENGTH_LONG).show();
+                                finish();
+                            } else {
+                                String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                                Toast.makeText(this, "Failed to send reset email: " + errorMsg, Toast.LENGTH_LONG).show();
+                            }
+                        });
+            }
         } catch (Exception e) {
             progressBar.setVisibility(View.GONE);
             resetButton.setEnabled(true);

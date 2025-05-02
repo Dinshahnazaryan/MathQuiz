@@ -22,7 +22,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final String TAG = "RegisterActivity";
     private FirebaseAuth mAuth;
-    private EditText emailInput, passwordInput, confirmPasswordInput;
+    private EditText emailInput, passwordInput;
     private Button registerBtn;
     private TextView loginText;
     private ProgressBar progressBar;
@@ -35,13 +35,11 @@ public class RegisterActivity extends AppCompatActivity {
             mAuth = FirebaseAuth.getInstance();
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
-            confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
             registerBtn = findViewById(R.id.registerBtn);
             loginText = findViewById(R.id.loginText);
             progressBar = findViewById(R.id.progressBar);
 
-            if (emailInput == null || passwordInput == null || confirmPasswordInput == null ||
-                    registerBtn == null || loginText == null || progressBar == null) {
+            if (emailInput == null || passwordInput == null || registerBtn == null || loginText == null || progressBar == null) {
                 Log.e(TAG, "One or more views are null");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 finish();
@@ -67,7 +65,6 @@ public class RegisterActivity extends AppCompatActivity {
             };
             emailInput.addTextChangedListener(textWatcher);
             passwordInput.addTextChangedListener(textWatcher);
-            confirmPasswordInput.addTextChangedListener(textWatcher);
 
             registerBtn.setOnClickListener(v -> registerUser());
             loginText.setOnClickListener(v -> {
@@ -90,9 +87,8 @@ public class RegisterActivity extends AppCompatActivity {
 
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
-            String confirmPassword = confirmPasswordInput.getText().toString().trim();
 
-            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            if (email.isEmpty() || password.isEmpty()) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
@@ -104,13 +100,6 @@ public class RegisterActivity extends AppCompatActivity {
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
                 Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (!password.equals(confirmPassword)) {
-                progressBar.setVisibility(View.GONE);
-                registerBtn.setEnabled(true);
-                loginText.setEnabled(true);
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (password.length() < 6) {

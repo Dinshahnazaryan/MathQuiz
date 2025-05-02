@@ -1,6 +1,5 @@
 package com.example.mathquiz;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -25,7 +24,6 @@ public class VerifyCodeActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private String email;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,9 +47,9 @@ public class VerifyCodeActivity extends AppCompatActivity {
             }
 
             email = getIntent().getStringExtra("email");
-            if (email == null) {
-                Log.e(TAG, "Email not provided");
-                Toast.makeText(this, "Error: Email not provided", Toast.LENGTH_LONG).show();
+            if (email == null || email.isEmpty()) {
+                Log.e(TAG, "Email not provided in Intent");
+                Toast.makeText(this, "Invalid email", Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
@@ -72,11 +70,11 @@ public class VerifyCodeActivity extends AppCompatActivity {
             cancelButton.setEnabled(false);
 
             String code = codeInput.getText().toString().trim();
-            if (code.length() != 6) {
+            if (code.isEmpty() || code.length() != 6) {
                 progressBar.setVisibility(View.GONE);
                 verifyButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                Toast.makeText(this, "Please enter a 6-digit code", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter a valid 6-digit code", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
@@ -88,11 +86,11 @@ public class VerifyCodeActivity extends AppCompatActivity {
             }
 
             db.collection("reset_codes").document(email).get()
-                    .addOnSuccessListener(document -> {
-                        if (document.exists()) {
-                            String storedCode = document.getString("code");
-                            long expiryTime = document.getLong("expiryTime");
-                            if (storedCode == null || expiryTime == 0) {
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String storedCode = documentSnapshot.getString("code");
+                            Long expiryTime = documentSnapshot.getLong("expiryTime");
+                            if (storedCode == null || expiryTime == null) {
                                 progressBar.setVisibility(View.GONE);
                                 verifyButton.setEnabled(true);
                                 cancelButton.setEnabled(true);
@@ -103,15 +101,12 @@ public class VerifyCodeActivity extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
                                 verifyButton.setEnabled(true);
                                 cancelButton.setEnabled(true);
-                                Toast.makeText(this, "Code has expired. Request a new one.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, "Code has expired", Toast.LENGTH_LONG).show();
                                 return;
                             }
-                            if (storedCode.equals(code)) {
-                                db.collection("reset_codes").document(email).delete();
+                            if (code.equals(storedCode)) {
                                 progressBar.setVisibility(View.GONE);
-                                verifyButton.setEnabled(true);
-                                cancelButton.setEnabled(true);
-                                Toast.makeText(this, "Code verified successfully", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Code verified", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(VerifyCodeActivity.this, ResetPasswordActivity.class);
                                 intent.putExtra("email", email);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -121,7 +116,7 @@ public class VerifyCodeActivity extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
                                 verifyButton.setEnabled(true);
                                 cancelButton.setEnabled(true);
-                                Toast.makeText(this, "Invalid code", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Incorrect code", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             progressBar.setVisibility(View.GONE);
@@ -134,6 +129,7 @@ public class VerifyCodeActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                         verifyButton.setEnabled(true);
                         cancelButton.setEnabled(true);
+                        Log.e(TAG, "Error verifying code: " + e.getMessage(), e);
                         Toast.makeText(this, "Error verifying code: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -21,51 +22,36 @@
         android:id="@+id/emailInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#BBBBBB"
-        android:background="@drawable/edittext_selector"
-        android:padding="12dp"
-        android:textSize="18sp"
-        android:singleLine="true"
-        android:imeOptions="actionNext"
         android:autofillHints="emailAddress"
-        android:contentDescription="Email Input" />
+        android:background="@drawable/edittext_selector"
+        android:contentDescription="Email Input"
+        android:hint="Email"
+        android:imeOptions="actionNext"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:singleLine="true"
+        android:textColor="#1A237E"
+        android:textColorHint="#1A237E"
+        android:textSize="18sp"
+        tools:ignore="EditableContentDescCheck" />
 
     <EditText
         android:id="@+id/passwordInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:autofillHints="newPassword"
+        android:background="@drawable/edittext_selector"
+        android:contentDescription="Password Input"
         android:hint="Password"
-        android:inputType="textPassword"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#BBBBBB"
-        android:background="@drawable/edittext_selector"
-        android:padding="12dp"
-        android:textSize="18sp"
-        android:singleLine="true"
-        android:imeOptions="actionNext"
-        android:autofillHints="newPassword"
-        android:contentDescription="Password Input" />
-
-    <EditText
-        android:id="@+id/confirmPasswordInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Confirm Password"
-        android:inputType="textPassword"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#BBBBBB"
-        android:background="@drawable/edittext_selector"
-        android:padding="12dp"
-        android:textSize="18sp"
-        android:singleLine="true"
         android:imeOptions="actionDone"
-        android:autofillHints="newPassword"
-        android:contentDescription="Confirm Password Input" />
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:singleLine="true"
+        android:textColor="#1A237E"
+        android:textColorHint="#1A237E"
+        android:textSize="18sp"
+        tools:ignore="EditableContentDescCheck" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -91,11 +77,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:contentDescription="Log In Link"
+        android:focusable="true"
         android:text="Already have an account? Log in"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        android:clickable="true"
-        android:focusable="true"
-        android:contentDescription="Log In Link" />
+        tools:ignore="TouchTargetSizeCheck" />
 
 </LinearLayout>

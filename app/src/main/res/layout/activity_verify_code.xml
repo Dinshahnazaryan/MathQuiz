@@ -33,17 +33,16 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/verifyCodeTitle"
             android:layout_marginTop="32dp"
-            android:hint="Enter 6-digit code"
-            android:inputType="number"
-            android:textColor="#1A237Ed"
-            android:textColorHint="#1A237E"
-            android:background="@drawable/edittext_selector"
-            android:padding="12dp"
-            android:textSize="18sp"
-            android:singleLine="true"
-            android:imeOptions="actionDone"
             android:autofillHints="oneTimeCode"
-            android:contentDescription="Code Input" />
+            android:background="@drawable/edittext_selector"
+            android:hint="Enter 6-digit code"
+            android:imeOptions="actionDone"
+            android:inputType="number"
+            android:padding="12dp"
+            android:singleLine="true"
+            android:textColor="#1A237E"
+            android:textColorHint="#1A237E"
+            android:textSize="18sp" />
 
         <ProgressBar
             android:id="@+id/progressBar"

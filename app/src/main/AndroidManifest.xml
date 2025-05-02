@@ -18,9 +18,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- Launcher activity for user registration -->
         <activity
             android:name=".RegisterActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -29,35 +31,43 @@
 
         <activity
             android:name=".LoginActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".AccountActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".PasswordOptionsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".ChangePasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".ForgotPasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".VerifyCodeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".ResetPasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/AppTheme" />
 
     </application>
 
