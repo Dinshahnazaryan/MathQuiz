@@ -6,21 +6,6 @@
     android:padding="24dp"
     android:background="@color/dark_blue">
 
-    <ImageButton
-        android:id="@+id/backArrowBtn"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:contentDescription="Back to Start"
-        android:src="@drawable/ic_back_arrow"
-        android:scaleType="centerInside"
-        android:padding="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFFFF" />
-
     <TextView
         android:id="@+id/emailText"
         android:layout_width="wrap_content"
