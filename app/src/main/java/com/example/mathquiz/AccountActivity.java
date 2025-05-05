@@ -23,7 +23,7 @@ public class AccountActivity extends AppCompatActivity {
 
     private TextView emailText, quizResultsText;
     private EditText passwordInput;
-    private Button changePasswordBtn, backToStartBtn;
+    private Button changePasswordBtn, backToStartBtn, signOutBtn, deleteAccountBtn;
     private LinearLayout passwordToggle, passwordChangeLayout;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -53,10 +53,12 @@ public class AccountActivity extends AppCompatActivity {
         changePasswordBtn = findViewById(R.id.changePasswordBtn);
         quizResultsText = findViewById(R.id.quizResultsText);
         backToStartBtn = findViewById(R.id.backToStartBtn);
+        signOutBtn = findViewById(R.id.signOutBtn);
+        deleteAccountBtn = findViewById(R.id.deleteAccountBtn);
 
         if (emailText == null || passwordToggle == null || passwordChangeLayout == null ||
-                passwordInput == null || changePasswordBtn == null || quizResultsText == null ||
-                backToStartBtn == null) {
+                passwordInput == null || changePasswordBtn == null ||
+        quizResultsText == null || backToStartBtn == null || signOutBtn == null || deleteAccountBtn == null) {
             Log.e(TAG, "UI elements missing");
             Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
             finish();
@@ -70,6 +72,10 @@ public class AccountActivity extends AppCompatActivity {
         });
 
         changePasswordBtn.setOnClickListener(v -> changePassword());
+
+        signOutBtn.setOnClickListener(v -> signOut());
+
+        deleteAccountBtn.setOnClickListener(v -> deleteAccount());
 
         backToStartBtn.setOnClickListener(v -> {
             Log.d(TAG, "Back to Start clicked");
@@ -112,6 +118,73 @@ public class AccountActivity extends AppCompatActivity {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                         Log.e(TAG, "Failed to update password: " + errorMsg, task.getException());
                         Toast.makeText(this, "Failed to update password: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void signOut() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Log.e(TAG, "No user logged in");
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        mAuth.signOut();
+        Log.d(TAG, "User signed out");
+        Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void deleteAccount() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Log.e(TAG, "No user logged in");
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userId = user.getUid();
+        deleteAccountBtn.setEnabled(false);
+
+
+        db.collection("users").document(userId).collection("scores")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        if (querySnapshot != null) {
+                            for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                                document.getReference().delete();
+                            }
+                        }
+
+
+                        user.delete()
+                                .addOnCompleteListener(deleteTask -> {
+                                    deleteAccountBtn.setEnabled(true);
+                                    if (deleteTask.isSuccessful()) {
+                                        Log.d(TAG, "User account deleted for: " + user.getEmail());
+                                        Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        String errorMsg = deleteTask.getException() != null ? deleteTask.getException().getMessage() : "Unknown error";
+                                        Log.e(TAG, "Failed to delete account: " + errorMsg, deleteTask.getException());
+                                        Toast.makeText(this, "Failed to delete account: " + errorMsg, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                    } else {
+                        deleteAccountBtn.setEnabled(true);
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Log.e(TAG, "Failed to delete Firestore data: " + errorMsg, task.getException());
+                        Toast.makeText(this, "Failed to delete account data: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }

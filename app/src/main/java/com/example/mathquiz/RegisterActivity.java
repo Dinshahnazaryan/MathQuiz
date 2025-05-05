@@ -1,3 +1,4 @@
+
 package com.example.mathquiz;
 
 import android.annotation.SuppressLint;
@@ -6,6 +7,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -15,22 +17,30 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "RegisterActivity";
+    private static final long MIN_CLICK_INTERVAL = 1000; // 1 second
     private FirebaseAuth mAuth;
     private EditText emailInput, passwordInput;
     private Button registerBtn;
     private TextView loginText;
     private ProgressBar progressBar;
+    private long lastClickTime = 0;
 
     @SuppressLint("StringFormatInvalid")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         try {
             setContentView(R.layout.activity_register);
             mAuth = FirebaseAuth.getInstance();
@@ -41,10 +51,8 @@ public class RegisterActivity extends AppCompatActivity {
             progressBar = findViewById(R.id.progressBar);
 
             if (emailInput == null || passwordInput == null || registerBtn == null || loginText == null || progressBar == null) {
-                Log.e(TAG, "UI elements missing: emailInput=" + emailInput +
-                        ", passwordInput=" + passwordInput + ", registerBtn=" + registerBtn +
-                        ", loginText=" + loginText + ", progressBar=" + progressBar);
-                Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "UI elements missing");
+                showToast(R.string.ui_init_failed);
                 finish();
                 return;
             }
@@ -68,19 +76,41 @@ public class RegisterActivity extends AppCompatActivity {
             emailInput.addTextChangedListener(textWatcher);
             passwordInput.addTextChangedListener(textWatcher);
 
-            registerBtn.setOnClickListener(v -> registerUser());
+            registerBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    registerUser();
+                }
+            });
             loginText.setOnClickListener(v -> {
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
+                if (isClickAllowed()) {
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                }
             });
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, getString(R.string.app_init_failed, e.getMessage()), Toast.LENGTH_LONG).show();
+            showToast(getString(R.string.app_init_failed, e.getMessage()));
             finish();
         }
     }
 
-    @SuppressLint("StringFormatInvalid")
+    private boolean isClickAllowed() {
+        long currentTime = SystemClock.elapsedRealtime();
+        if (currentTime - lastClickTime < MIN_CLICK_INTERVAL) {
+            return false;
+        }
+        lastClickTime = currentTime;
+        return true;
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showToast(int resId) {
+        Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
+    }
+
     private void registerUser() {
         try {
             progressBar.setVisibility(View.VISIBLE);
@@ -90,32 +120,25 @@ public class RegisterActivity extends AppCompatActivity {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
 
+            StringBuilder errorMessage = new StringBuilder();
             if (email.isEmpty() || password.isEmpty()) {
-                progressBar.setVisibility(View.GONE);
-                registerBtn.setEnabled(true);
-                loginText.setEnabled(true);
-                Toast.makeText(this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
-                return;
+                errorMessage.append(getString(R.string.fill_all_fields)).append("\n");
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                progressBar.setVisibility(View.GONE);
-                registerBtn.setEnabled(true);
-                loginText.setEnabled(true);
-                Toast.makeText(this, R.string.invalid_email, Toast.LENGTH_SHORT).show();
-                return;
+                errorMessage.append(getString(R.string.invalid_email)).append("\n");
             }
             if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
-                progressBar.setVisibility(View.GONE);
-                registerBtn.setEnabled(true);
-                loginText.setEnabled(true);
-                Toast.makeText(this, R.string.invalid_password_format, Toast.LENGTH_SHORT).show();
-                return;
+                errorMessage.append(getString(R.string.invalid_password_format)).append("\n");
             }
             if (!isNetworkAvailable()) {
+                errorMessage.append(getString(R.string.no_internet)).append("\n");
+            }
+
+            if (errorMessage.length() > 0) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
+                showToast(errorMessage.toString().trim());
                 return;
             }
 
@@ -130,20 +153,23 @@ public class RegisterActivity extends AppCompatActivity {
                                 user.sendEmailVerification()
                                         .addOnCompleteListener(verifyTask -> {
                                             if (verifyTask.isSuccessful()) {
-                                                Toast.makeText(this, R.string.registration_successful, Toast.LENGTH_LONG).show();
-                                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                startActivity(intent);
-                                                finish();
+                                                showToast("Registration successful. Verification email sent.");
                                             } else {
-                                                Toast.makeText(this, getString(R.string.verification_email_failed, verifyTask.getException().getMessage()), Toast.LENGTH_LONG).show();
+                                                Log.w(TAG, "Failed to send verification email: " + verifyTask.getException().getMessage());
+                                                showToast("Registered, but failed to send verification email.");
                                             }
                                         });
+                                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                                finish();
                             } else {
-                                Toast.makeText(this, R.string.registration_failed, Toast.LENGTH_LONG).show();
+                                showToast(R.string.registration_failed);
                             }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(this, getString(R.string.registration_failed_with_error, errorMsg), Toast.LENGTH_LONG).show();
+                            showToast("Registration failed: " + errorMsg);
                         }
                     });
         } catch (Exception e) {
@@ -151,7 +177,7 @@ public class RegisterActivity extends AppCompatActivity {
             registerBtn.setEnabled(true);
             loginText.setEnabled(true);
             Log.e(TAG, "Error in registerUser: " + e.getMessage(), e);
-            Toast.makeText(this, getString(R.string.registration_error, e.getMessage()), Toast.LENGTH_LONG).show();
+            showToast("Registration error: " + e.getMessage());
         }
     }
 
