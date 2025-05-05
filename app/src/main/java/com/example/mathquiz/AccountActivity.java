@@ -65,17 +65,14 @@ public class AccountActivity extends AppCompatActivity {
 
         passwordToggle.setOnClickListener(v -> {
             Log.d(TAG, "Password toggle clicked");
-            if (passwordChangeLayout.getVisibility() == View.VISIBLE) {
-                passwordChangeLayout.setVisibility(View.GONE);
-            } else {
-                passwordChangeLayout.setVisibility(View.VISIBLE);
-            }
+            passwordChangeLayout.setVisibility(
+                    passwordChangeLayout.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
         });
 
         changePasswordBtn.setOnClickListener(v -> changePassword());
 
         backToStartBtn.setOnClickListener(v -> {
-            Log.d(TAG, "Back to Start clicked, navigating to MainActivity");
+            Log.d(TAG, "Back to Start clicked");
             Intent intent = new Intent(AccountActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
@@ -97,7 +94,7 @@ public class AccountActivity extends AppCompatActivity {
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
-            Log.e(TAG, "No user logged in, cannot change password");
+            Log.e(TAG, "No user logged in");
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             return;
         }
