@@ -27,4 +27,5 @@
     <item name="changePasswordBtn" type="id" />
     <item name="logoutButton" type="id" />
     <item name="quizResultsText" type="id" />
+    <item name="loginLayout" type="id" />
 </resources>

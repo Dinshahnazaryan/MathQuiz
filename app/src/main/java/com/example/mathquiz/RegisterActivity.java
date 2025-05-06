@@ -1,4 +1,3 @@
-
 package com.example.mathquiz;
 
 import android.annotation.SuppressLint;
@@ -12,6 +11,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -20,13 +20,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "RegisterActivity";
-    private static final long MIN_CLICK_INTERVAL = 1000; // 1 second
+    private static final long MIN_CLICK_INTERVAL = 1000;
     private FirebaseAuth mAuth;
     private EditText emailInput, passwordInput;
     private Button registerBtn;
@@ -38,9 +37,8 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         try {
             setContentView(R.layout.activity_register);
             mAuth = FirebaseAuth.getInstance();
@@ -90,6 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
             showToast(getString(R.string.app_init_failed, e.getMessage()));
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
             finish();
         }
     }
