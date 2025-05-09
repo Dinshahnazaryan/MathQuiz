@@ -1,6 +1,5 @@
 package com.example.mathquiz;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-
     private static final String TAG = "MainActivity";
     private TextView questionProgressText, questionText, resultText, splashText, gradeText;
     private RadioGroup answerOptions;
@@ -77,97 +75,95 @@ public class MainActivity extends AppCompatActivity {
     private int incorrectCount = 0;
     private String currentCorrectAnswer;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        Log.d(TAG, "onCreate: Checking user authentication status");
+        try {
+            setContentView(R.layout.activity_main);
+            mAuth = FirebaseAuth.getInstance();
+            db = FirebaseFirestore.getInstance();
+            splashLayout = findViewById(R.id.splashLayout);
+            quizLayout = findViewById(R.id.quizLayout);
+            resultLayout = findViewById(R.id.resultLayout);
+            questionProgressText = findViewById(R.id.questionProgressText);
+            questionText = findViewById(R.id.questionText);
+            answerOptions = findViewById(R.id.answerOptions);
+            option1 = findViewById(R.id.option1);
+            option2 = findViewById(R.id.option2);
+            option3 = findViewById(R.id.option3);
+            option4 = findViewById(R.id.option4);
+            submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
+            startBtn = findViewById(R.id.startBtn);
+            homeBtn = findViewById(R.id.homeBtn);
+            accountBtn = findViewById(R.id.accountBtn);
+            resultText = findViewById(R.id.resultText);
+            splashText = findViewById(R.id.splashText);
+            timerProgress = findViewById(R.id.timerProgress);
+            splashProgress = findViewById(R.id.splashProgress);
+            gradeText = findViewById(R.id.gradeText);
+            gradeEmoji = findViewById(R.id.gradeEmoji);
+            splashIcon = findViewById(R.id.splashIcon);
 
-        // Initialize UI elements
-        splashLayout = findViewById(R.id.splashLayout);
-        quizLayout = findViewById(R.id.quizLayout);
-        resultLayout = findViewById(R.id.resultLayout);
-        questionProgressText = findViewById(R.id.questionProgressText);
-        questionText = findViewById(R.id.questionText);
-        answerOptions = findViewById(R.id.answerOptions);
-        option1 = findViewById(R.id.option1);
-        option2 = findViewById(R.id.option2);
-        option3 = findViewById(R.id.option3);
-        option4 = findViewById(R.id.option4);
-        submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
-        startBtn = findViewById(R.id.startBtn);
-        homeBtn = findViewById(R.id.homeBtn);
-        accountBtn = findViewById(R.id.accountBtn);
-        resultText = findViewById(R.id.resultText);
-        splashText = findViewById(R.id.splashText);
-        timerProgress = findViewById(R.id.timerProgress);
-        splashProgress = findViewById(R.id.splashProgress);
-        gradeText = findViewById(R.id.gradeText);
-        gradeEmoji = findViewById(R.id.gradeEmoji);
-        splashIcon = findViewById(R.id.splashIcon);
-
-        // Check UI initialization
-        if (splashLayout == null || quizLayout == null || resultLayout == null ||
-                questionProgressText == null || questionText == null || answerOptions == null ||
-                option1 == null || option2 == null || option3 == null || option4 == null ||
-                submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
-                resultText == null || splashText == null || timerProgress == null ||
-                splashProgress == null || gradeText == null || gradeEmoji == null || splashIcon == null) {
-            Log.e(TAG, "One or more UI elements not found");
-            Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // Set click listeners
-        startBtn.setOnClickListener(v -> startQuiz());
-        submitAnswerBtn.setOnClickListener(v -> submitAnswer());
-        homeBtn.setOnClickListener(v -> returnToStart());
-        accountBtn.setOnClickListener(v -> {
-            Log.d(TAG, "Account button clicked, visibility: " + (accountBtn.getVisibility() == View.VISIBLE ? "VISIBLE" : "GONE"));
-            if (mAuth.getCurrentUser() == null) {
-                Log.d(TAG, "No user signed in, navigating to RegisterActivity");
-                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
-            } else {
-                Log.d(TAG, "User signed in, navigating to AccountActivity");
-                Intent intent = new Intent(MainActivity.this, AccountActivity.class);
-                intent.putExtra("email", mAuth.getCurrentUser().getEmail());
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-            }
-        });
-
-        // Splash screen timer
-        splashProgress.setMax(100);
-        new CountDownTimer(3000, 30) {
-            public void onTick(long millisUntilFinished) {
-                int progress = (int) ((3000 - millisUntilFinished) / 30);
-                splashProgress.setProgress(progress);
+            if (splashLayout == null || quizLayout == null || resultLayout == null ||
+                    questionProgressText == null || questionText == null || answerOptions == null ||
+                    option1 == null || option2 == null || option3 == null || option4 == null ||
+                    submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
+                    resultText == null || splashText == null || timerProgress == null ||
+                    splashProgress == null || gradeText == null || gradeEmoji == null || splashIcon == null) {
+                Log.e(TAG, "UI initialization failed");
+                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+                finish();
+                return;
             }
 
-            public void onFinish() {
-                Log.d(TAG, "Splash screen finished, updating UI visibility");
+            startBtn.setOnClickListener(v -> startQuiz());
+            submitAnswerBtn.setOnClickListener(v -> submitAnswer());
+            homeBtn.setOnClickListener(v -> returnToStart());
+            accountBtn.setOnClickListener(v -> {
                 if (mAuth.getCurrentUser() == null) {
-                    Log.d(TAG, "No user signed in, navigating to RegisterActivity");
                     Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
-                    finish();
+                    Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
                 } else {
-                    splashLayout.setVisibility(View.GONE);
-                    questionText.setVisibility(View.VISIBLE);
-                    startBtn.setVisibility(View.VISIBLE);
-                    resultText.setVisibility(View.VISIBLE);
-                    accountBtn.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Account button set to VISIBLE after splash");
+                    Intent intent = new Intent(MainActivity.this, AccountActivity.class);
+                    intent.putExtra("email", mAuth.getCurrentUser().getEmail());
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
                 }
+            });
+
+            splashProgress.setMax(100);
+            new CountDownTimer(3000, 30) {
+                public void onTick(long millisUntilFinished) {
+                    splashProgress.setProgress((int) ((3000 - millisUntilFinished) / 30));
+                }
+
+                public void onFinish() {
+                    if (mAuth.getCurrentUser() == null) {
+                        Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        splashLayout.setVisibility(View.GONE);
+                        questionText.setVisibility(View.VISIBLE);
+                        startBtn.setVisibility(View.VISIBLE);
+                        resultText.setVisibility(View.VISIBLE);
+                        accountBtn.setVisibility(View.VISIBLE);
+                    }
+                }
+            }.start();
+
+            String email = getIntent().getStringExtra("email");
+            if (email != null) {
+                Toast.makeText(this, "Welcome, " + email, Toast.LENGTH_LONG).show();
             }
-        }.start();
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onCreate: " + e.getMessage());
+            Toast.makeText(this, "Initialization failed", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void startQuiz() {
@@ -201,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         splashLayout.setVisibility(View.GONE);
         startBtn.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
-        accountBtn.setVisibility(View.VISIBLE); // Keep accountBtn visible during quiz
+        accountBtn.setVisibility(View.VISIBLE);
         quizLayout.setVisibility(View.VISIBLE);
         questionProgressText.setVisibility(View.VISIBLE);
         timerProgress.setVisibility(View.VISIBLE);
@@ -224,10 +220,14 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
             currentCorrectAnswer = correctAnswersText[currentQuestion];
-            option1.setBackgroundResource(R.drawable.radiobutton_selector);
-            option2.setBackgroundResource(R.drawable.radiobutton_selector);
-            option3.setBackgroundResource(R.drawable.radiobutton_selector);
-            option4.setBackgroundResource(R.drawable.radiobutton_selector);
+            try {
+                option1.setBackgroundResource(R.drawable.radiobutton_selector);
+                option2.setBackgroundResource(R.drawable.radiobutton_selector);
+                option3.setBackgroundResource(R.drawable.radiobutton_selector);
+                option4.setBackgroundResource(R.drawable.radiobutton_selector);
+            } catch (Exception e) {
+                Log.e(TAG, "Error setting radio button background: " + e.getMessage());
+            }
             answerOptions.clearCheck();
             startQuestionTimer();
         } else {
@@ -242,8 +242,7 @@ public class MainActivity extends AppCompatActivity {
         timerProgress.setMax(100);
         questionTimer = new CountDownTimer(15000, 150) {
             public void onTick(long millisUntilFinished) {
-                int progress = (int) ((15000 - millisUntilFinished) / 150);
-                timerProgress.setProgress(progress);
+                timerProgress.setProgress((int) ((15000 - millisUntilFinished) / 150));
             }
 
             public void onFinish() {
@@ -272,11 +271,19 @@ public class MainActivity extends AppCompatActivity {
         if (selectedAnswerText.equals(currentCorrectAnswer)) {
             correctCount++;
             resultText.setText("Correct!");
-            selectedOption.setBackgroundColor(getResources().getColor(R.color.green));
+            try {
+                selectedOption.setBackgroundResource(R.drawable.correct_answer);
+            } catch (Exception e) {
+                Log.e(TAG, "Error setting correct background: " + e.getMessage());
+            }
         } else {
             incorrectCount++;
             resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
-            selectedOption.setBackgroundColor(getResources().getColor(R.color.red));
+            try {
+                selectedOption.setBackgroundResource(R.drawable.incorrect_answer);
+            } catch (Exception e) {
+                Log.e(TAG, "Error setting incorrect background: " + e.getMessage());
+            }
             highlightCorrectAnswer();
         }
         currentQuestion++;
@@ -286,7 +293,11 @@ public class MainActivity extends AppCompatActivity {
     private void highlightCorrectAnswer() {
         for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
             if (option != null && option.getText().toString().equals(currentCorrectAnswer)) {
-                option.setBackgroundColor(getResources().getColor(R.color.green));
+                try {
+                    option.setBackgroundResource(R.drawable.correct_answer);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error highlighting correct answer: " + e.getMessage());
+                }
             }
         }
     }
@@ -295,18 +306,23 @@ public class MainActivity extends AppCompatActivity {
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.VISIBLE);
         resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
-        if (correctCount <= 3) {
-            gradeText.setText("Bad");
-            gradeEmoji.setImageResource(R.drawable.bad);
-        } else if (correctCount <= 6) {
-            gradeText.setText("Normal");
-            gradeEmoji.setImageResource(R.drawable.norm);
-        } else if (correctCount <= 10) {
-            gradeText.setText("Good");
-            gradeEmoji.setImageResource(R.drawable.good);
-        } else {
-            gradeText.setText("Excellent");
-            gradeEmoji.setImageResource(R.drawable.excellent);
+        try {
+            if (correctCount <= 3) {
+                gradeText.setText("Bad");
+                gradeEmoji.setImageResource(R.drawable.bad);
+            } else if (correctCount <= 6) {
+                gradeText.setText("Normal");
+                gradeEmoji.setImageResource(R.drawable.norm);
+            } else if (correctCount <= 10) {
+                gradeText.setText("Good");
+                gradeEmoji.setImageResource(R.drawable.good);
+            } else {
+                gradeText.setText("Excellent");
+                gradeEmoji.setImageResource(R.drawable.excellent);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting grade: " + e.getMessage());
+            gradeText.setText("Results");
         }
         gradeText.setVisibility(View.VISIBLE);
         gradeEmoji.setVisibility(View.VISIBLE);
@@ -320,17 +336,12 @@ public class MainActivity extends AppCompatActivity {
             scoreData.put("timestamp", System.currentTimeMillis());
             db.collection("users").document(userId).collection("scores")
                     .add(scoreData)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to save score: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+                    .addOnSuccessListener(documentReference -> Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e -> Toast.makeText(this, "Failed to save score", Toast.LENGTH_SHORT).show());
         }
     }
 
     private void returnToStart() {
-        Log.d(TAG, "Home button clicked, resetting quiz");
         currentQuestion = -1;
         correctCount = 0;
         incorrectCount = 0;
