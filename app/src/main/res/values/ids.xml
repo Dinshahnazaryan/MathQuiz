@@ -28,4 +28,9 @@
     <item name="logoutButton" type="id" />
     <item name="quizResultsText" type="id" />
     <item name="loginLayout" type="id" />
+    <item name="passwordToggle" type="id" />
+    <item name="passwordChangeLayout" type="id" />
+    <item name="backToStartBtn" type="id" />
+    <item name="signOutBtn" type="id" />
+    <item name="deleteAccountBtn" type="id" />
 </resources>

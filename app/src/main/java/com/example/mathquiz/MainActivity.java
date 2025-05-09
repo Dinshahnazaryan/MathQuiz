@@ -2,6 +2,9 @@ package com.example.mathquiz;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -116,20 +119,40 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            // Set round white background with press effect for accountBtn
+            GradientDrawable normal = new GradientDrawable();
+            normal.setShape(GradientDrawable.OVAL);
+            normal.setColor(Color.WHITE);
+            GradientDrawable pressed = new GradientDrawable();
+            pressed.setShape(GradientDrawable.OVAL);
+            pressed.setColor(Color.LTGRAY);
+            StateListDrawable states = new StateListDrawable();
+            states.addState(new int[]{android.R.attr.state_pressed}, pressed);
+            states.addState(new int[]{}, normal);
+            accountBtn.setBackground(states);
+
             startBtn.setOnClickListener(v -> startQuiz());
             submitAnswerBtn.setOnClickListener(v -> submitAnswer());
             homeBtn.setOnClickListener(v -> returnToStart());
             accountBtn.setOnClickListener(v -> {
+                Log.d(TAG, "Account button clicked");
                 if (mAuth.getCurrentUser() == null) {
+                    Log.w(TAG, "No user logged in, redirecting to RegisterActivity");
                     Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                     Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
                 } else {
+                    Log.d(TAG, "User logged in: " + mAuth.getCurrentUser().getEmail() + ", starting AccountActivity");
                     Intent intent = new Intent(MainActivity.this, AccountActivity.class);
                     intent.putExtra("email", mAuth.getCurrentUser().getEmail());
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
+                    try {
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to start AccountActivity: " + e.getMessage(), e);
+                        Toast.makeText(this, "Failed to open account: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 }
             });
 
@@ -141,11 +164,13 @@ public class MainActivity extends AppCompatActivity {
 
                 public void onFinish() {
                     if (mAuth.getCurrentUser() == null) {
+                        Log.w(TAG, "No user logged in after splash, redirecting to RegisterActivity");
                         Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         finish();
                     } else {
+                        Log.d(TAG, "User logged in after splash: " + mAuth.getCurrentUser().getEmail());
                         splashLayout.setVisibility(View.GONE);
                         questionText.setVisibility(View.VISIBLE);
                         startBtn.setVisibility(View.VISIBLE);
@@ -221,10 +246,10 @@ public class MainActivity extends AppCompatActivity {
             option4.setText(currentOptionsList.get(3));
             currentCorrectAnswer = correctAnswersText[currentQuestion];
             try {
-                option1.setBackgroundResource(R.drawable.radiobutton_selector);
-                option2.setBackgroundResource(R.drawable.radiobutton_selector);
-                option3.setBackgroundResource(R.drawable.radiobutton_selector);
-                option4.setBackgroundResource(R.drawable.radiobutton_selector);
+                option1.setBackgroundColor(Color.WHITE);
+                option2.setBackgroundColor(Color.WHITE);
+                option3.setBackgroundColor(Color.WHITE);
+                option4.setBackgroundColor(Color.WHITE);
             } catch (Exception e) {
                 Log.e(TAG, "Error setting radio button background: " + e.getMessage());
             }
@@ -272,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
             correctCount++;
             resultText.setText("Correct!");
             try {
-                selectedOption.setBackgroundResource(R.drawable.correct_answer);
+                selectedOption.setBackgroundColor(Color.GREEN);
             } catch (Exception e) {
                 Log.e(TAG, "Error setting correct background: " + e.getMessage());
             }
@@ -280,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
             incorrectCount++;
             resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
             try {
-                selectedOption.setBackgroundResource(R.drawable.incorrect_answer);
+                selectedOption.setBackgroundColor(Color.RED);
             } catch (Exception e) {
                 Log.e(TAG, "Error setting incorrect background: " + e.getMessage());
             }
@@ -294,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
             if (option != null && option.getText().toString().equals(currentCorrectAnswer)) {
                 try {
-                    option.setBackgroundResource(R.drawable.correct_answer);
+                    option.setBackgroundColor(Color.GREEN);
                 } catch (Exception e) {
                     Log.e(TAG, "Error highlighting correct answer: " + e.getMessage());
                 }
@@ -312,10 +337,10 @@ public class MainActivity extends AppCompatActivity {
                 gradeEmoji.setImageResource(R.drawable.bad);
             } else if (correctCount <= 6) {
                 gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.norm);
+                gradeEmoji.setImageResource(R.drawable.good);
             } else if (correctCount <= 10) {
                 gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.good);
+                gradeEmoji.setImageResource(R.drawable.norm);
             } else {
                 gradeText.setText("Excellent");
                 gradeEmoji.setImageResource(R.drawable.excellent);

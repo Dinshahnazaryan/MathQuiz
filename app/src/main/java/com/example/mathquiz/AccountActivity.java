@@ -1,22 +1,16 @@
 package com.example.mathquiz;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.*;
 
 public class AccountActivity extends AppCompatActivity {
     private static final String TAG = "AccountActivity";
@@ -28,24 +22,17 @@ public class AccountActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
+    @SuppressLint("MissingInflatedId")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        try {
-            mAuth = FirebaseAuth.getInstance();
-            db = FirebaseFirestore.getInstance();
-            initializeUI();
-            loadUserData();
-        } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, R.string.app_init_failed, Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-    private void initializeUI() {
+        // Bind views
         emailText = findViewById(R.id.emailText);
         passwordToggle = findViewById(R.id.passwordToggle);
         passwordChangeLayout = findViewById(R.id.passwordChangeLayout);
@@ -56,198 +43,131 @@ public class AccountActivity extends AppCompatActivity {
         signOutBtn = findViewById(R.id.signOutBtn);
         deleteAccountBtn = findViewById(R.id.deleteAccountBtn);
 
-        if (emailText == null || passwordToggle == null || passwordChangeLayout == null ||
-                passwordInput == null || changePasswordBtn == null ||
-        quizResultsText == null || backToStartBtn == null || signOutBtn == null || deleteAccountBtn == null) {
-            Log.e(TAG, "UI elements missing");
-            Toast.makeText(this, R.string.ui_init_failed, Toast.LENGTH_LONG).show();
+        // Debug log for null views
+        if (emailText == null || passwordToggle == null || passwordChangeLayout == null || passwordInput == null ||
+                changePasswordBtn == null || quizResultsText == null || backToStartBtn == null ||
+                signOutBtn == null || deleteAccountBtn == null) {
+            Log.e(TAG, "One or more views are not found. Check activity_account.xml IDs.");
+            Toast.makeText(this, "UI loading error", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Set click listeners
+        passwordToggle.setOnClickListener(v -> togglePasswordLayout());
+        changePasswordBtn.setOnClickListener(v -> changePassword());
+        signOutBtn.setOnClickListener(v -> signOut());
+        deleteAccountBtn.setOnClickListener(v -> deleteAccount());
+        backToStartBtn.setOnClickListener(v -> {
+            startActivity(new Intent(AccountActivity.this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            finish();
+        });
+
+        loadUserData();
+    }
+
+    private void togglePasswordLayout() {
+        if (passwordChangeLayout.getVisibility() == View.VISIBLE) {
+            passwordChangeLayout.setVisibility(View.GONE);
+        } else {
+            passwordChangeLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void loadUserData() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, RegisterActivity.class));
             finish();
             return;
         }
 
-        passwordToggle.setOnClickListener(v -> {
-            Log.d(TAG, "Password toggle clicked");
-            passwordChangeLayout.setVisibility(
-                    passwordChangeLayout.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-        });
+        emailText.setText("Email: " + user.getEmail());
 
-        changePasswordBtn.setOnClickListener(v -> changePassword());
+        db.collection("users").document(user.getUid()).collection("scores")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        quizResultsText.setText("No quiz results found");
+                        return;
+                    }
 
-        signOutBtn.setOnClickListener(v -> signOut());
+                    long totalQuizzes = snapshot.size();
+                    double totalScore = 0;
 
-        deleteAccountBtn.setOnClickListener(v -> deleteAccount());
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        Long correct = doc.getLong("correct");
+                        Long incorrect = doc.getLong("incorrect");
+                        if (correct != null && incorrect != null) {
+                            double percent = (correct * 1.0 / (correct + incorrect)) * 100;
+                            totalScore += percent;
+                        }
+                    }
 
-        backToStartBtn.setOnClickListener(v -> {
-            Log.d(TAG, "Back to Start clicked");
-            Intent intent = new Intent(AccountActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        });
+                    double avg = totalScore / totalQuizzes;
+                    quizResultsText.setText("Total Quizzes: " + totalQuizzes +
+                            "\nAverage Score: " + String.format("%.1f%%", avg));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading quiz data", e);
+                    quizResultsText.setText("Error loading quiz results");
+                });
     }
 
     private void changePassword() {
         String newPassword = passwordInput.getText().toString().trim();
-        if (newPassword.isEmpty()) {
-            Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!newPassword.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
-            Toast.makeText(this, R.string.invalid_password_format, Toast.LENGTH_LONG).show();
+        if (newPassword.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
             return;
         }
 
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            Log.e(TAG, "No user logged in");
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
+        if (user != null) {
+            user.updatePassword(newPassword)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Password updated", Toast.LENGTH_SHORT).show();
+                            passwordInput.setText("");
+                            passwordChangeLayout.setVisibility(View.GONE);
+                        } else {
+                            Toast.makeText(this, "Failed to update password", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
-
-        changePasswordBtn.setEnabled(false);
-        user.updatePassword(newPassword)
-                .addOnCompleteListener(task -> {
-                    changePasswordBtn.setEnabled(true);
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Password updated for: " + user.getEmail());
-                        Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
-                        passwordInput.setText("");
-                        passwordChangeLayout.setVisibility(View.GONE);
-                    } else {
-                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        Log.e(TAG, "Failed to update password: " + errorMsg, task.getException());
-                        Toast.makeText(this, "Failed to update password: " + errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                });
     }
 
     private void signOut() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            Log.e(TAG, "No user logged in");
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         mAuth.signOut();
-        Log.d(TAG, "User signed out");
-        Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        startActivity(new Intent(this, RegisterActivity.class));
         finish();
     }
 
     private void deleteAccount() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            Log.e(TAG, "No user logged in");
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (user == null) return;
 
-        String userId = user.getUid();
-        deleteAccountBtn.setEnabled(false);
+        String uid = user.getUid();
 
-
-        db.collection("users").document(userId).collection("scores")
+        db.collection("users").document(uid).collection("scores")
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot querySnapshot = task.getResult();
-                        if (querySnapshot != null) {
-                            for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-                                document.getReference().delete();
-                            }
-                        }
-
-
-                        user.delete()
-                                .addOnCompleteListener(deleteTask -> {
-                                    deleteAccountBtn.setEnabled(true);
-                                    if (deleteTask.isSuccessful()) {
-                                        Log.d(TAG, "User account deleted for: " + user.getEmail());
-                                        Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(intent);
-                                        finish();
-                                    } else {
-                                        String errorMsg = deleteTask.getException() != null ? deleteTask.getException().getMessage() : "Unknown error";
-                                        Log.e(TAG, "Failed to delete account: " + errorMsg, deleteTask.getException());
-                                        Toast.makeText(this, "Failed to delete account: " + errorMsg, Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                    } else {
-                        deleteAccountBtn.setEnabled(true);
-                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        Log.e(TAG, "Failed to delete Firestore data: " + errorMsg, task.getException());
-                        Toast.makeText(this, "Failed to delete account data: " + errorMsg, Toast.LENGTH_LONG).show();
+                .addOnSuccessListener(snapshot -> {
+                    for (DocumentSnapshot doc : snapshot) {
+                        doc.getReference().delete();
                     }
-                });
-    }
 
-    private void loadUserData() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            Log.e(TAG, "No user logged in");
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(AccountActivity.this, RegisterActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        String email = user.getEmail();
-        if (email == null || email.isEmpty()) {
-            Log.e(TAG, "No email found for user");
-            Toast.makeText(this, "User email not found", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        emailText.setText("Email: " + email);
-
-        db.collection("users").document(user.getUid()).collection("scores")
-                .get()
-                .addOnCompleteListener(task -> {
-                    try {
+                    user.delete().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            QuerySnapshot querySnapshot = task.getResult();
-                            if (querySnapshot != null && !querySnapshot.isEmpty()) {
-                                long totalQuizzes = querySnapshot.size();
-                                double totalPercentage = 0;
-                                for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-                                    Long correct = document.getLong("correct");
-                                    Long incorrect = document.getLong("incorrect");
-                                    Log.d(TAG, "Document: " + document.getId() + ", correct: " + correct + ", incorrect: " + incorrect);
-                                    if (correct != null && incorrect != null && (correct + incorrect) > 0) {
-                                        double percentage = (correct / (double) (correct + incorrect)) * 100;
-                                        totalPercentage += percentage;
-                                    } else {
-                                        Log.w(TAG, "Invalid score data for document: " + document.getId());
-                                    }
-                                }
-                                double averagePercentage = totalQuizzes > 0 ? totalPercentage / totalQuizzes : 0;
-                                String results = "Total Quizzes: " + totalQuizzes + "\n" +
-                                        "Average Score: " + String.format("%.1f%%", averagePercentage);
-                                quizResultsText.setText(results);
-                                Log.d(TAG, "Quiz results loaded: " + results);
-                            } else {
-                                quizResultsText.setText("No quiz results found");
-                                Log.d(TAG, "No quiz results found for: " + email);
-                            }
+                            Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, RegisterActivity.class));
+                            finish();
                         } else {
-                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Log.e(TAG, "Failed to load quiz data: " + errorMsg, task.getException());
-                            Toast.makeText(this, "Failed to load data: " + errorMsg, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Error deleting account", Toast.LENGTH_SHORT).show();
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing quiz data: " + e.getMessage(), e);
-                        Toast.makeText(this, R.string.app_error, Toast.LENGTH_LONG).show();
-                    }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error deleting Firestore data", Toast.LENGTH_SHORT).show();
                 });
     }
 }

@@ -44,8 +44,7 @@ public class LoginActivity extends AppCompatActivity {
             loginLayout = findViewById(R.id.loginLayout);
 
             if (emailInput == null || passwordInput == null || loginBtn == null ||
-                    forgotPasswordText == null || progressBar == null ||
-                    splashLayout == null || loginLayout == null) {
+                    forgotPasswordText == null || progressBar == null) {
                 Log.e(TAG, "UI elements missing");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 finish();
@@ -85,8 +84,12 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFinish() {
-                    splashLayout.setVisibility(View.GONE);
-                    loginLayout.setVisibility(View.VISIBLE);
+                    if (splashLayout != null) {
+                        splashLayout.setVisibility(View.GONE);
+                    }
+                    if (loginLayout != null) {
+                        loginLayout.setVisibility(View.VISIBLE);
+                    }
                 }
             }.start();
         } catch (Exception e) {
