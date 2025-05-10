@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Set round white background with press effect for accountBtn
             GradientDrawable normal = new GradientDrawable();
             normal.setShape(GradientDrawable.OVAL);
             normal.setColor(Color.WHITE);
@@ -136,19 +136,26 @@ public class MainActivity extends AppCompatActivity {
             homeBtn.setOnClickListener(v -> returnToStart());
             accountBtn.setOnClickListener(v -> {
                 Log.d(TAG, "Account button clicked");
-                if (mAuth.getCurrentUser() == null) {
-                    Log.w(TAG, "No user logged in, redirecting to RegisterActivity");
-                    Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    Log.w(TAG, "No user logged in, redirecting to LoginActivity");
+                    Toast.makeText(this, "Please log in to access account", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    Toast.makeText(this, "Please register to access account", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d(TAG, "User logged in: " + mAuth.getCurrentUser().getEmail() + ", starting AccountActivity");
-                    Intent intent = new Intent(MainActivity.this, AccountActivity.class);
-                    intent.putExtra("email", mAuth.getCurrentUser().getEmail());
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     try {
                         startActivity(intent);
+                        Log.d(TAG, "LoginActivity intent sent");
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to start LoginActivity: " + e.getMessage(), e);
+                        Toast.makeText(this, "Failed to open login: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Log.d(TAG, "User logged in: " + user.getEmail() + ", starting AccountActivity");
+                    Intent intent = new Intent(MainActivity.this, AccountActivity.class);
+                    intent.putExtra("email", user.getEmail());
+                    try {
+                        startActivity(intent);
+                        Log.d(TAG, "AccountActivity intent sent");
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to start AccountActivity: " + e.getMessage(), e);
                         Toast.makeText(this, "Failed to open account: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -163,14 +170,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 public void onFinish() {
-                    if (mAuth.getCurrentUser() == null) {
-                        Log.w(TAG, "No user logged in after splash, redirecting to RegisterActivity");
-                        Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user == null) {
+                        Log.w(TAG, "No user logged in after splash, redirecting to LoginActivity");
+                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         finish();
                     } else {
-                        Log.d(TAG, "User logged in after splash: " + mAuth.getCurrentUser().getEmail());
+                        Log.d(TAG, "User logged in after splash: " + user.getEmail());
                         splashLayout.setVisibility(View.GONE);
                         questionText.setVisibility(View.VISIBLE);
                         startBtn.setVisibility(View.VISIBLE);
@@ -353,16 +361,25 @@ public class MainActivity extends AppCompatActivity {
         gradeEmoji.setVisibility(View.VISIBLE);
         homeBtn.setVisibility(View.VISIBLE);
         accountBtn.setVisibility(View.VISIBLE);
-        if (mAuth.getCurrentUser() != null) {
-            String userId = mAuth.getCurrentUser().getUid();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
             Map<String, Object> scoreData = new HashMap<>();
             scoreData.put("correct", correctCount);
             scoreData.put("incorrect", incorrectCount);
             scoreData.put("timestamp", System.currentTimeMillis());
             db.collection("users").document(userId).collection("scores")
                     .add(scoreData)
-                    .addOnSuccessListener(documentReference -> Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(this, "Failed to save score", Toast.LENGTH_SHORT).show());
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "Score saved for user: " + userId);
+                        Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to save score: " + e.getMessage());
+                        Toast.makeText(this, "Failed to save score", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.w(TAG, "No user logged in when saving score");
         }
     }
 

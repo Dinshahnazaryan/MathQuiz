@@ -33,6 +33,17 @@ public class LoginActivity extends AppCompatActivity {
         try {
             setContentView(R.layout.activity_login);
             mAuth = FirebaseAuth.getInstance();
+
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            if (currentUser != null) {
+                Log.d(TAG, "User already logged in: " + currentUser.getEmail());
+                startActivity(new Intent(this, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        .putExtra("email", currentUser.getEmail()));
+                finish();
+                return;
+            }
+
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
@@ -44,7 +55,8 @@ public class LoginActivity extends AppCompatActivity {
             loginLayout = findViewById(R.id.loginLayout);
 
             if (emailInput == null || passwordInput == null || loginBtn == null ||
-                    forgotPasswordText == null || progressBar == null) {
+                    registerBtn == null || forgotPasswordText == null || progressBar == null ||
+                    splashProgress == null || splashLayout == null || loginLayout == null) {
                 Log.e(TAG, "UI elements missing");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 finish();
@@ -52,44 +64,34 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             loginBtn.setOnClickListener(v -> loginUser());
+            registerBtn.setOnClickListener(v -> {
+                try {
+                    startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage());
+                    Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show();
+                }
+            });
             forgotPasswordText.setOnClickListener(v -> {
                 try {
-                    Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-                    startActivity(intent);
+                    startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
                 } catch (Exception e) {
-                    Log.e(TAG, "Error starting ForgottenPasswordActivity: " + e.getMessage());
+                    Log.e(TAG, "Error starting ForgotPasswordActivity: " + e.getMessage());
                     Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show();
                 }
             });
 
-            if (registerBtn != null) {
-                registerBtn.setOnClickListener(v -> {
-                    try {
-                        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error starting RegisterActivity: " + e.getMessage());
-                        Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            new CountDownTimer(3000, 100) {
+            splashProgress.setMax(100);
+            new CountDownTimer(3000, 30) {
                 @Override
                 public void onTick(long millisUntilFinished) {
-                    if (splashProgress != null) {
-                        splashProgress.setProgress((int) (100 - (millisUntilFinished / 30)));
-                    }
+                    splashProgress.setProgress((int) ((3000 - millisUntilFinished) / 30));
                 }
 
                 @Override
                 public void onFinish() {
-                    if (splashLayout != null) {
-                        splashLayout.setVisibility(View.GONE);
-                    }
-                    if (loginLayout != null) {
-                        loginLayout.setVisibility(View.VISIBLE);
-                    }
+                    splashLayout.setVisibility(View.GONE);
+                    loginLayout.setVisibility(View.VISIBLE);
                 }
             }.start();
         } catch (Exception e) {
@@ -104,13 +106,27 @@ public class LoginActivity extends AppCompatActivity {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            if (email.isEmpty()) {
+                emailInput.setError("Email is required");
+                emailInput.requestFocus();
                 return;
             }
 
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Invalid email", Toast.LENGTH_SHORT).show();
+                emailInput.setError("Invalid email format");
+                emailInput.requestFocus();
+                return;
+            }
+
+            if (password.isEmpty()) {
+                passwordInput.setError("Password is required");
+                passwordInput.requestFocus();
+                return;
+            }
+
+            if (password.length() < 6) {
+                passwordInput.setError("Password must be at least 6 characters");
+                passwordInput.requestFocus();
                 return;
             }
 
@@ -122,6 +138,7 @@ public class LoginActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
             loginBtn.setEnabled(false);
 
+            Log.d(TAG, "Attempting login with email: " + email);
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         progressBar.setVisibility(View.GONE);
@@ -130,15 +147,12 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if (user != null) {
-                                try {
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    intent.putExtra("email", user.getEmail());
-                                    startActivity(intent);
-                                    finish();
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error starting MainActivity: " + e.getMessage());
-                                    Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show();
-                                }
+                                Log.d(TAG, "Login successful for user: " + user.getEmail());
+                                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, MainActivity.class)
+                                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                        .putExtra("email", user.getEmail()));
+                                finish();
                             } else {
                                 Log.e(TAG, "User is null after successful login");
                                 Toast.makeText(this, "User not found", Toast.LENGTH_LONG).show();
@@ -146,14 +160,22 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                             Log.e(TAG, "Login failed: " + errorMsg);
-                            Toast.makeText(this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            if (errorMsg.contains("no user record")) {
+                                Toast.makeText(this, "User not registered. Please register.", Toast.LENGTH_LONG).show();
+                            } else if (errorMsg.contains("password is invalid")) {
+                                Toast.makeText(this, "Incorrect password", Toast.LENGTH_LONG).show();
+                            } else if (errorMsg.contains("network error")) {
+                                Toast.makeText(this, "Network error. Check your connection.", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                            }
                         }
                     });
         } catch (Exception e) {
             progressBar.setVisibility(View.GONE);
             loginBtn.setEnabled(true);
             Log.e(TAG, "Error in loginUser: " + e.getMessage());
-            Toast.makeText(this, "Login error", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Login error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

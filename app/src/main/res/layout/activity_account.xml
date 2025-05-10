@@ -1,247 +1,271 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="@color/dark_blue">
+    android:background="@color/dark_blue"
+    android:padding="16dp">
 
-    <ImageButton
-        android:id="@+id/accountBtn"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:contentDescription="Account"
-        android:src="@drawable/ic_account"
-        android:scaleType="centerInside"
-        android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/splashLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="visible"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/splashIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="Math Quiz Icon"
-                android:src="@drawable/ic_math_quiz" />
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
 
             <TextView
-                android:id="@+id/splashText"
+                android:id="@+id/accountTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="MathQuiz"
-                android:gravity="center"
-                android:textColor="#FFFFFF"
-                android:textSize="36sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="32dp"
+                android:text="Account"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:contentDescription="Account Title" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email"
+                        android:textColor="@color/gray_700"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/emailText"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/edittext_background_new"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="12dp"
+                        android:text="Email: "
+                        android:textColor="@color/dark_blue"
+                        android:textSize="16sp"
+                        android:contentDescription="Email Display" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Change Password"
+                        android:textColor="@color/gray_700"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/passwordToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/edittext_background_new"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="12dp"
+                        android:text="Tap to change password"
+                        android:textColor="@color/dark_blue"
+                        android:textSize="16sp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="Change Password Toggle" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/passwordChangeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="New Password"
+                        android:textColor="@color/gray_700"
+                        android:textSize="14sp" />
+
+                    <EditText
+                        android:id="@+id/passwordInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/edittext_background_new"
+                        android:contentDescription="New Password Input"
+                        android:hint="Enter new password"
+                        android:imeOptions="actionDone"
+                        android:inputType="textPassword"
+                        android:maxLines="1"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="@color/dark_blue"
+                        android:textColorHint="@color/gray_400"
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/changePasswordBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/button_background"
+                        android:contentDescription="Update Password Button"
+                        android:text="Update Password"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz Results"
+                        android:textColor="@color/gray_700"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/quizResultsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/edittext_background_new"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="12dp"
+                        android:text="Quiz Results: "
+                        android:textColor="@color/dark_blue"
+                        android:textSize="16sp"
+                        android:contentDescription="Quiz Results Display" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <Button
+                        android:id="@+id/backToStartBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/button_background"
+                        android:contentDescription="Back to Start Button"
+                        android:text="Back to Start"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Account Actions"
+                        android:textColor="@color/gray_700"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/signOutBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/button_background"
+                        android:contentDescription="Sign Out Button"
+                        android:text="Sign Out"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/deleteAccountBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/button_background"
+                        android:contentDescription="Delete Account Button"
+                        android:text="Delete Account"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/splashProgress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:max="100"
-            android:progressTint="#FFFFFF"
-            android:visibility="visible" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/quizLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/questionProgressText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0/11"
-            android:textSize="24sp"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/timerProgress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:max="100"
-            android:progressTint="#FFFFFF"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/questionText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:gravity="center"
-            android:text="Press Start to begin the quiz"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:visibility="visible" />
-
-        <RadioGroup
-            android:id="@+id/answerOptions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <RadioButton
-                android:id="@+id/option1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
-                android:text="Option 1"
-                android:textColor="#1A237E"
-                android:textSize="18sp" />
-
-            <RadioButton
-                android:id="@+id/option2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
-                android:text="Option 2"
-                android:textColor="#1A237E"
-                android:textSize="18sp" />
-
-            <RadioButton
-                android:id="@+id/option3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
-                android:text="Option 3"
-                android:textColor="#1A237E"
-                android:textSize="18sp" />
-
-            <RadioButton
-                android:id="@+id/option4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
-                android:text="Option 4"
-                android:textColor="#1A237E"
-                android:textSize="18sp" />
-        </RadioGroup>
-
-        <Button
-            android:id="@+id/submitAnswerBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_selector"
-            android:padding="12dp"
-            android:text="Submit Answer"
-            android:textColor="#1A237E"
-            android:textSize="18sp"
-            android:visibility="gone" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/startBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/button_selector"
-        android:padding="12dp"
-        android:text="Start Quiz"
-        android:textColor="#1A237E"
-        android:textSize="18sp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/quizLayout" />
-
-    <LinearLayout
-        android:id="@+id/resultLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/startBtn">
-
-        <TextView
-            android:id="@+id/gradeText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="30sp"
-            android:visibility="gone" />
-
-        <ImageView
-            android:id="@+id/gradeEmoji"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginTop="8dp"
-            android:contentDescription="Grade Emoji"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/resultText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text=""
-            android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/homeBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/button_selector"
-            android:padding="12dp"
-            android:text="Home"
-            android:textColor="#1A237E"
-            android:textSize="18sp"
-            android:visibility="gone" />
-    </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
