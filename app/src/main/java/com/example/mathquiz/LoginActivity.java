@@ -34,16 +34,6 @@ public class LoginActivity extends AppCompatActivity {
             setContentView(R.layout.activity_login);
             mAuth = FirebaseAuth.getInstance();
 
-            FirebaseUser currentUser = mAuth.getCurrentUser();
-            if (currentUser != null) {
-                Log.d(TAG, "User already logged in: " + currentUser.getEmail());
-                startActivity(new Intent(this, MainActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        .putExtra("email", currentUser.getEmail()));
-                finish();
-                return;
-            }
-
             emailInput = findViewById(R.id.emailInput);
             passwordInput = findViewById(R.id.passwordInput);
             loginBtn = findViewById(R.id.loginBtn);
@@ -54,11 +44,20 @@ public class LoginActivity extends AppCompatActivity {
             splashLayout = findViewById(R.id.splashLayout);
             loginLayout = findViewById(R.id.loginLayout);
 
-            if (emailInput == null || passwordInput == null || loginBtn == null ||
-                    registerBtn == null || forgotPasswordText == null || progressBar == null ||
-                    splashProgress == null || splashLayout == null || loginLayout == null) {
-                Log.e(TAG, "UI elements missing");
-                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+            StringBuilder nullViews = new StringBuilder();
+            if (emailInput == null) nullViews.append("emailInput, ");
+            if (passwordInput == null) nullViews.append("passwordInput, ");
+            if (loginBtn == null) nullViews.append("loginBtn, ");
+            if (registerBtn == null) nullViews.append("registerBtn, ");
+            if (forgotPasswordText == null) nullViews.append("forgotPasswordText, ");
+            if (progressBar == null) nullViews.append("progressBar, ");
+            if (splashProgress == null) nullViews.append("splashProgress, ");
+            if (splashLayout == null) nullViews.append("splashLayout, ");
+            if (loginLayout == null) nullViews.append("loginLayout, ");
+
+            if (nullViews.length() > 0) {
+                Log.e(TAG, "Missing UI elements: " + nullViews.toString());
+                Toast.makeText(this, "UI initialization failed: missing " + nullViews.toString(), Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
@@ -95,8 +94,8 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }.start();
         } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage());
-            Toast.makeText(this, "Initialization failed", Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
+            Toast.makeText(this, "Initialization failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
     }
