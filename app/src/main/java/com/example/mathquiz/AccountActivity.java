@@ -1,4 +1,4 @@
- package com.example.mathquiz;
+package com.example.mathquiz;
 
 import android.content.Intent;
 import android.content.res.Resources;
@@ -19,7 +19,7 @@ public class AccountActivity extends AppCompatActivity {
     private TextView emailText, quizResultsText, passwordToggle;
     private EditText passwordInput;
     private Button changePasswordBtn, backToStartBtn, signOutBtn, deleteAccountBtn;
-    private CardView passwordChangeLayout; // Changed from LinearLayout to CardView
+    private CardView passwordChangeLayout;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -31,13 +31,13 @@ public class AccountActivity extends AppCompatActivity {
             Log.d(TAG, "Checking resource availability");
             Resources res = getResources();
             try {
-                res.getDrawable(R.drawable.edittext_background_new);
-                res.getDrawable(R.drawable.button_background);
-                res.getColor(R.color.dark_blue);
-                res.getColor(R.color.white);
-                res.getColor(R.color.gray_700);
-                res.getColor(R.color.gray_400);
-                res.getColor(R.color.primary_blue);
+                checkResource(res, R.drawable.edittext_background_new, "drawable/edittext_background_new");
+                checkResource(res, R.drawable.button_background, "drawable/button_background");
+                checkResource(res, R.color.dark_blue, "color/dark_blue");
+                checkResource(res, R.color.white, "color/white");
+                checkResource(res, R.color.gray_700, "color/gray_700");
+                checkResource(res, R.color.gray_400, "color/gray_400");
+                checkResource(res, R.color.primary_blue, "color/primary_blue");
                 Log.d(TAG, "All required resources found");
             } catch (Resources.NotFoundException e) {
                 Log.e(TAG, "Resource missing: " + e.getMessage(), e);
@@ -82,6 +82,19 @@ public class AccountActivity extends AppCompatActivity {
             Log.e(TAG, "Stack trace: ", e);
             Toast.makeText(this, "Account screen error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             navigateToMain();
+        }
+    }
+
+    private void checkResource(Resources res, int id, String name) throws Resources.NotFoundException {
+        try {
+            if (name.startsWith("drawable/")) {
+                res.getDrawable(id);
+            } else if (name.startsWith("color/")) {
+                res.getColor(id);
+            }
+            Log.d(TAG, "Resource found: " + name);
+        } catch (Resources.NotFoundException e) {
+            throw new Resources.NotFoundException(name);
         }
     }
 
