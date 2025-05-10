@@ -1,5 +1,6 @@
 package com.example.mathquiz;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -27,6 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private LinearLayout splashLayout, loginLayout;
     private FirebaseAuth mAuth;
 
+    @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             if (splashLayout == null) nullViews.append("splashLayout, ");
             if (loginLayout == null) nullViews.append("loginLayout, ");
 
-            if (nullViews.length() > 0) {
+            if (!nullViews.isEmpty()) {
                 Log.e(TAG, "Missing UI elements: " + nullViews.toString());
                 Toast.makeText(this, "UI initialization failed: missing " + nullViews.toString(), Toast.LENGTH_LONG).show();
                 finish();
