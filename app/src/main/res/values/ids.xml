@@ -38,4 +38,8 @@
     <item name="emailEditText" type="id" />
     <item name="passwordEditText" type="id" />
     <item name="loginButton" type="id" />
+    <item name="registerText" type="id" />
+    <item name="signOutButton" type="id" />
+    <item name="emailTextView" type="id" />
+    <item name="accountTitle" type="id" />
 </resources>

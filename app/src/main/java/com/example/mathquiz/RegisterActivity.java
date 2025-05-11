@@ -146,20 +146,25 @@ public class RegisterActivity extends AppCompatActivity {
                                 user.sendEmailVerification()
                                         .addOnCompleteListener(verifyTask -> {
                                             if (verifyTask.isSuccessful()) {
-                                                Toast.makeText(this, "Verification email sent", Toast.LENGTH_SHORT).show();
+                                                Log.d(TAG, "Verification email sent to " + email);
+                                                Toast.makeText(this, "Verification email sent to " + email, Toast.LENGTH_LONG).show();
                                             } else {
-                                                Toast.makeText(this, "Failed to send verification email", Toast.LENGTH_SHORT).show();
+                                                String errorMsg = verifyTask.getException() != null ? verifyTask.getException().getMessage() : "Unknown error";
+                                                Log.e(TAG, "Failed to send verification email: " + errorMsg);
+                                                Toast.makeText(this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
                                             }
                                         });
-                                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                mAuth.signOut();
+                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
                                 finish();
                             } else {
-                                Toast.makeText(this, "Registration failed", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, "Registration failed: User not found", Toast.LENGTH_LONG).show();
                             }
                         } else {
                             String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                            Log.e(TAG, "Registration failed: " + errorMsg);
                             Toast.makeText(this, "Registration failed: " + errorMsg, Toast.LENGTH_LONG).show();
                         }
                     });
