@@ -1,175 +1,133 @@
- package com.example.mathquiz;
+package com.example.mathquiz;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
-    private static final long MIN_CLICK_INTERVAL = 1000;
     private FirebaseAuth mAuth;
-    private EditText emailEditText, passwordEditText;
+    private EditText emailInput, passwordInput;
     private Button loginButton;
-    private TextView registerText, forgotPasswordText;
+    private TextView forgotPasswordText, registerText;
     private ProgressBar progressBar;
-    private long lastClickTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_login);
-            mAuth = FirebaseAuth.getInstance();
+        setContentView(R.layout.activity_login);
 
-            emailEditText = findViewById(R.id.emailInput);
-            passwordEditText = findViewById(R.id.passwordInput);
-            loginButton = findViewById(R.id.loginButton);
-            registerText = findViewById(R.id.registerText);
-            forgotPasswordText = findViewById(R.id.forgotPasswordText);
-            progressBar = findViewById(R.id.progressBar);
+        mAuth = FirebaseAuth.getInstance();
 
-            if (emailEditText == null || passwordEditText == null || loginButton == null ||
-                    registerText == null || forgotPasswordText == null || progressBar == null) {
-                Log.e(TAG, "UI elements missing");
-                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
-                finish();
-                return;
-            }
+        emailInput = findViewById(R.id.emailInput);
+        passwordInput = findViewById(R.id.passwordInput);
+        loginButton = findViewById(R.id.loginButton);
+        forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        registerText = findViewById(R.id.registerText);
+        progressBar = findViewById(R.id.progressBar);
 
-            loginButton.setOnClickListener(v -> {
-                if (isClickAllowed()) {
-                    loginUser();
-                }
-            });
+        loginButton.setOnClickListener(v -> loginUser());
 
-            registerText.setOnClickListener(v -> {
-                if (isClickAllowed()) {
-                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                    startActivity(intent);
-                }
-            });
+        forgotPasswordText.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
+        });
 
-            forgotPasswordText.setOnClickListener(v -> {
-                if (isClickAllowed()) {
-                    Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-                    startActivity(intent);
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage());
-            Toast.makeText(this, "Initialization failed", Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
+        registerText.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+        });
 
-    private boolean isClickAllowed() {
-        long currentTime = SystemClock.elapsedRealtime();
-        if (currentTime - lastClickTime < MIN_CLICK_INTERVAL) {
-            return false;
-        }
-        lastClickTime = currentTime;
-        return true;
+        // Auto-login logic has been removed from here
     }
 
     private void loginUser() {
-        try {
-            progressBar.setVisibility(View.VISIBLE);
-            loginButton.setEnabled(false);
-            registerText.setEnabled(false);
-            forgotPasswordText.setEnabled(false);
+        String email = emailInput.getText().toString().trim();
+        String password = passwordInput.getText().toString().trim();
 
-            String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
-            String password = passwordEditText.getText() != null ? passwordEditText.getText().toString().trim() : "";
-
-            if (email.isEmpty() || password.isEmpty()) {
-                progressBar.setVisibility(View.GONE);
-                loginButton.setEnabled(true);
-                registerText.setEnabled(true);
-                forgotPasswordText.setEnabled(true);
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                progressBar.setVisibility(View.GONE);
-                loginButton.setEnabled(true);
-                registerText.setEnabled(true);
-                forgotPasswordText.setEnabled(true);
-                Toast.makeText(this, "Invalid email", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!isNetworkAvailable()) {
-                progressBar.setVisibility(View.GONE);
-                loginButton.setEnabled(true);
-                registerText.setEnabled(true);
-                forgotPasswordText.setEnabled(true);
-                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, task -> {
-                        progressBar.setVisibility(View.GONE);
-                        loginButton.setEnabled(true);
-                        registerText.setEnabled(true);
-                        forgotPasswordText.setEnabled(true);
-                        if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            if (user != null) {
-                                if (user.isEmailVerified()) {
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    // Resend verification email
-                                    user.sendEmailVerification()
-                                            .addOnCompleteListener(verifyTask -> {
-                                                if (verifyTask.isSuccessful()) {
-                                                    Toast.makeText(this, "Verification email sent to " + email, Toast.LENGTH_LONG).show();
-                                                } else {
-                                                    String errorMsg = verifyTask.getException() != null ? verifyTask.getException().getMessage() : "Unknown error";
-                                                    Toast.makeText(this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
-                                                }
-                                            });
-                                    mAuth.signOut();
-                                    Toast.makeText(this, "Please verify your email", Toast.LENGTH_LONG).show();
-                                }
-                            } else {
-                                Toast.makeText(this, "Login failed: User not found", Toast.LENGTH_LONG).show();
-                            }
-                        } else {
-                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Toast.makeText(this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
-                        }
-                    });
-        } catch (Exception e) {
-            progressBar.setVisibility(View.GONE);
-            loginButton.setEnabled(true);
-            registerText.setEnabled(true);
-            forgotPasswordText.setEnabled(true);
-            Log.e(TAG, "Error in loginUser: " + e.getMessage());
-            Toast.makeText(this, "Login error", Toast.LENGTH_LONG).show();
+        if (TextUtils.isEmpty(email)) {
+            emailInput.setError("Email is required");
+            emailInput.requestFocus();
+            return;
         }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Enter a valid email");
+            emailInput.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            passwordInput.setError("Password is required");
+            passwordInput.requestFocus();
+            return;
+        }
+
+        if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$")) {
+            passwordInput.setError("Password must be 6+ chars with letters and numbers");
+            passwordInput.requestFocus();
+            return;
+        }
+
+
+        if (!isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressBar.setVisibility(View.VISIBLE);
+        loginButton.setEnabled(false);
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    progressBar.setVisibility(View.GONE);
+                    loginButton.setEnabled(true);
+
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null && user.isEmailVerified()) {
+                            Log.d(TAG, "Login successful for user: " + email);
+                            Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                            navigateToMainActivity(email);
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Please verify your email", Toast.LENGTH_LONG).show();
+                            mAuth.signOut();
+                        }
+                    } else {
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Login failed";
+                        Log.e(TAG, "Login failed: " + errorMsg, task.getException());
+                        Toast.makeText(LoginActivity.this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void navigateToMainActivity(String email) {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("email", email);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private boolean isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        boolean isAvailable = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        Log.d(TAG, "Network available: " + isAvailable);
+        return isAvailable;
     }
 }

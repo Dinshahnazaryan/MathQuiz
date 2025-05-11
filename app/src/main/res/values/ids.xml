@@ -42,4 +42,10 @@
     <item name="signOutButton" type="id" />
     <item name="emailTextView" type="id" />
     <item name="accountTitle" type="id" />
+    <item name="quizLayout" type="id" />
+    <item name="resultLayout" type="id" />
+    <item name="titleLayout" type="id" />
+    <item name="startPromptText" type="id" />
+    <item name="titleText" type="id" />
+    <item name="splashProgress" type="id" />
 </resources>

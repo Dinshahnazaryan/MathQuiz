@@ -2,4 +2,5 @@
 <resources>
     <drawable name="correct_answer_new" />
     <drawable name="incorrect_answer_new" />
+    <drawable name="radiobutton_background_new" />
 </resources>

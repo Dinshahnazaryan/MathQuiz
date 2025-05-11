@@ -71,7 +71,7 @@
         android:id="@+id/startBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_selector"
+        android:background="@drawable/radiobutton_background"
         android:padding="12dp"
         android:text="Start Quiz"
         android:textColor="#1A237E"
@@ -179,58 +179,76 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:clickable="true"
+            android:enabled="true">
 
             <RadioButton
                 android:id="@+id/option1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
+                android:button="@null"
+                android:background="@drawable/radiobutton_background"
+                android:padding="12dp"
                 android:text="Option 1"
                 android:textColor="#1A237E"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:clickable="true"
+                android:enabled="true"
+                android:checkable="true" />
 
             <RadioButton
                 android:id="@+id/option2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
+                android:button="@null"
+                android:background="@drawable/radiobutton_background"
+                android:padding="12dp"
                 android:text="Option 2"
                 android:textColor="#1A237E"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:clickable="true"
+                android:enabled="true"
+                android:checkable="true" />
 
             <RadioButton
                 android:id="@+id/option3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
+                android:button="@null"
+                android:background="@drawable/radiobutton_background"
+                android:padding="12dp"
                 android:text="Option 3"
                 android:textColor="#1A237E"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:clickable="true"
+                android:enabled="true"
+                android:checkable="true" />
 
             <RadioButton
                 android:id="@+id/option4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:background="@drawable/radiobutton_selector"
-                android:padding="10dp"
+                android:button="@null"
+                android:background="@drawable/radiobutton_background"
+                android:padding="12dp"
                 android:text="Option 4"
                 android:textColor="#1A237E"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:clickable="true"
+                android:enabled="true"
+                android:checkable="true" />
         </RadioGroup>
 
         <Button
             android:id="@+id/submitAnswerBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_selector"
+            android:background="@drawable/radiobutton_background"
             android:padding="12dp"
             android:text="Submit Answer"
             android:textColor="#1A237E"
@@ -284,7 +302,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@drawable/button_selector"
+            android:background="@drawable/radiobutton_background"
             android:padding="12dp"
             android:text="Home"
             android:textColor="#1A237E"
