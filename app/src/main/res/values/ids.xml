@@ -33,4 +33,9 @@
     <item name="backToStartBtn" type="id" />
     <item name="signOutBtn" type="id" />
     <item name="deleteAccountBtn" type="id" />
+    <item name="passwordCardView" type="id" />
+    <item name="changePasswordButton" type="id" />
+    <item name="emailEditText" type="id" />
+    <item name="passwordEditText" type="id" />
+    <item name="loginButton" type="id" />
 </resources>

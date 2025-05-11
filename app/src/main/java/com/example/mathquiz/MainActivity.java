@@ -82,120 +82,86 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_main);
-            mAuth = FirebaseAuth.getInstance();
-            db = FirebaseFirestore.getInstance();
-            splashLayout = findViewById(R.id.splashLayout);
-            quizLayout = findViewById(R.id.quizLayout);
-            resultLayout = findViewById(R.id.resultLayout);
-            questionProgressText = findViewById(R.id.questionProgressText);
-            questionText = findViewById(R.id.questionText);
-            answerOptions = findViewById(R.id.answerOptions);
-            option1 = findViewById(R.id.option1);
-            option2 = findViewById(R.id.option2);
-            option3 = findViewById(R.id.option3);
-            option4 = findViewById(R.id.option4);
-            submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
-            startBtn = findViewById(R.id.startBtn);
-            homeBtn = findViewById(R.id.homeBtn);
-            accountBtn = findViewById(R.id.accountBtn);
-            resultText = findViewById(R.id.resultText);
-            splashText = findViewById(R.id.splashText);
-            timerProgress = findViewById(R.id.timerProgress);
-            splashProgress = findViewById(R.id.splashProgress);
-            gradeText = findViewById(R.id.gradeText);
-            gradeEmoji = findViewById(R.id.gradeEmoji);
-            splashIcon = findViewById(R.id.splashIcon);
+        setContentView(R.layout.activity_main);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        splashLayout = findViewById(R.id.splashLayout);
+        quizLayout = findViewById(R.id.quizLayout);
+        resultLayout = findViewById(R.id.resultLayout);
+        questionProgressText = findViewById(R.id.questionProgressText);
+        questionText = findViewById(R.id.questionText);
+        answerOptions = findViewById(R.id.answerOptions);
+        option1 = findViewById(R.id.option1);
+        option2 = findViewById(R.id.option2);
+        option3 = findViewById(R.id.option3);
+        option4 = findViewById(R.id.option4);
+        submitAnswerBtn = findViewById(R.id.submitAnswerBtn);
+        startBtn = findViewById(R.id.startBtn);
+        homeBtn = findViewById(R.id.homeBtn);
+        accountBtn = findViewById(R.id.accountBtn);
+        resultText = findViewById(R.id.resultText);
+        splashText = findViewById(R.id.splashText);
+        timerProgress = findViewById(R.id.timerProgress);
+        splashProgress = findViewById(R.id.splashProgress);
+        gradeText = findViewById(R.id.gradeText);
+        gradeEmoji = findViewById(R.id.gradeEmoji);
+        splashIcon = findViewById(R.id.splashIcon);
 
-            if (splashLayout == null || quizLayout == null || resultLayout == null ||
-                    questionProgressText == null || questionText == null || answerOptions == null ||
-                    option1 == null || option2 == null || option3 == null || option4 == null ||
-                    submitAnswerBtn == null || startBtn == null || homeBtn == null || accountBtn == null ||
-                    resultText == null || splashText == null || timerProgress == null ||
-                    splashProgress == null || gradeText == null || gradeEmoji == null || splashIcon == null) {
-                Log.e(TAG, "UI initialization failed");
-                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+        GradientDrawable normal = new GradientDrawable();
+        normal.setShape(GradientDrawable.OVAL);
+        normal.setColor(Color.WHITE);
+        GradientDrawable pressed = new GradientDrawable();
+        pressed.setShape(GradientDrawable.OVAL);
+        pressed.setColor(Color.LTGRAY);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_pressed}, pressed);
+        states.addState(new int[]{}, normal);
+        accountBtn.setBackground(states);
+
+        startBtn.setOnClickListener(v -> startQuiz());
+        submitAnswerBtn.setOnClickListener(v -> submitAnswer());
+        homeBtn.setOnClickListener(v -> returnToStart());
+        accountBtn.setOnClickListener(v -> {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user == null) {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
-                return;
+            } else {
+                Intent intent = new Intent(MainActivity.this, AccountActivity.class);
+                String email = user.getEmail() != null ? user.getEmail() : "";
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
+        });
+
+        splashProgress.setMax(100);
+        new CountDownTimer(3000, 30) {
+            public void onTick(long millisUntilFinished) {
+                splashProgress.setProgress((int) ((3000 - millisUntilFinished) / 30));
             }
 
-            GradientDrawable normal = new GradientDrawable();
-            normal.setShape(GradientDrawable.OVAL);
-            normal.setColor(Color.WHITE);
-            GradientDrawable pressed = new GradientDrawable();
-            pressed.setShape(GradientDrawable.OVAL);
-            pressed.setColor(Color.LTGRAY);
-            StateListDrawable states = new StateListDrawable();
-            states.addState(new int[]{android.R.attr.state_pressed}, pressed);
-            states.addState(new int[]{}, normal);
-            accountBtn.setBackground(states);
-
-            startBtn.setOnClickListener(v -> startQuiz());
-            submitAnswerBtn.setOnClickListener(v -> submitAnswer());
-            homeBtn.setOnClickListener(v -> returnToStart());
-            accountBtn.setOnClickListener(v -> {
-                Log.d(TAG, "Account button clicked");
+            public void onFinish() {
                 FirebaseUser user = mAuth.getCurrentUser();
                 if (user == null) {
-                    Log.w(TAG, "No user logged in, redirecting to LoginActivity");
-                    Toast.makeText(this, "Please log in to access account", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    try {
-                        startActivity(intent);
-                        Log.d(TAG, "LoginActivity intent sent");
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to start LoginActivity: " + e.getMessage(), e);
-                        Toast.makeText(this, "Failed to open login: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
                 } else {
-                    Log.d(TAG, "User logged in: " + user.getEmail() + ", starting AccountActivity");
-                    Intent intent = new Intent(MainActivity.this, AccountActivity.class);
-                    intent.putExtra("email", user.getEmail());
-                    try {
-                        startActivity(intent);
-                        Log.d(TAG, "AccountActivity intent sent");
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to start AccountActivity: " + e.getMessage(), e);
-                        Toast.makeText(this, "Failed to open account: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                    splashLayout.setVisibility(View.GONE);
+                    questionText.setVisibility(View.VISIBLE);
+                    startBtn.setVisibility(View.VISIBLE);
+                    resultText.setVisibility(View.VISIBLE);
+                    accountBtn.setVisibility(View.VISIBLE);
                 }
-            });
-
-            splashProgress.setMax(100);
-            new CountDownTimer(3000, 30) {
-                public void onTick(long millisUntilFinished) {
-                    splashProgress.setProgress((int) ((3000 - millisUntilFinished) / 30));
-                }
-
-                public void onFinish() {
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user == null) {
-                        Log.w(TAG, "No user logged in after splash, redirecting to LoginActivity");
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Log.d(TAG, "User logged in after splash: " + user.getEmail());
-                        splashLayout.setVisibility(View.GONE);
-                        questionText.setVisibility(View.VISIBLE);
-                        startBtn.setVisibility(View.VISIBLE);
-                        resultText.setVisibility(View.VISIBLE);
-                        accountBtn.setVisibility(View.VISIBLE);
-                    }
-                }
-            }.start();
-
-            String email = getIntent().getStringExtra("email");
-            if (email != null) {
-                Toast.makeText(this, "Welcome, " + email, Toast.LENGTH_LONG).show();
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage());
-            Toast.makeText(this, "Initialization failed", Toast.LENGTH_LONG).show();
-            finish();
+        }.start();
+
+        String email = getIntent().getStringExtra("email");
+        if (email != null && !email.isEmpty()) {
+            Toast.makeText(this, "Welcome, " + email, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -205,9 +171,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         List<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < questions.length; i++) {
-            indices.add(i);
-        }
+        for (int i = 0; i < questions.length; i++) indices.add(i);
         Collections.shuffle(indices);
         String[] shuffledQuestions = new String[questions.length];
         String[][] shuffledOptions = new String[options.length][];
@@ -215,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < indices.size(); i++) {
             int index = indices.get(i);
             shuffledQuestions[i] = questions[index];
-            shuffledOptions[i] = options[index];
+            shuffledOptions[i] = options[index].clone();
             shuffledCorrectAnswersText[i] = correctAnswersText[index];
         }
         questions = shuffledQuestions;
@@ -246,21 +210,18 @@ public class MainActivity extends AppCompatActivity {
             questionText.setText(questions[currentQuestion]);
             updateQuestionProgress();
             List<String> currentOptionsList = new ArrayList<>();
-            Collections.addAll(currentOptionsList, options[currentQuestion]);
+            String[] currentOptions = options[currentQuestion];
+            Collections.addAll(currentOptionsList, currentOptions);
             Collections.shuffle(currentOptionsList);
             option1.setText(currentOptionsList.get(0));
             option2.setText(currentOptionsList.get(1));
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
             currentCorrectAnswer = correctAnswersText[currentQuestion];
-            try {
-                option1.setBackgroundColor(Color.WHITE);
-                option2.setBackgroundColor(Color.WHITE);
-                option3.setBackgroundColor(Color.WHITE);
-                option4.setBackgroundColor(Color.WHITE);
-            } catch (Exception e) {
-                Log.e(TAG, "Error setting radio button background: " + e.getMessage());
-            }
+            option1.setBackgroundColor(Color.WHITE);
+            option2.setBackgroundColor(Color.WHITE);
+            option3.setBackgroundColor(Color.WHITE);
+            option4.setBackgroundColor(Color.WHITE);
             answerOptions.clearCheck();
             startQuestionTimer();
         } else {
@@ -269,15 +230,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startQuestionTimer() {
-        if (questionTimer != null) {
-            questionTimer.cancel();
-        }
+        if (questionTimer != null) questionTimer.cancel();
         timerProgress.setMax(100);
         questionTimer = new CountDownTimer(15000, 150) {
             public void onTick(long millisUntilFinished) {
                 timerProgress.setProgress((int) ((15000 - millisUntilFinished) / 150));
             }
-
             public void onFinish() {
                 incorrectCount++;
                 resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
@@ -289,34 +247,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void submitAnswer() {
-        if (answerOptions == null) return;
         int selectedId = answerOptions.getCheckedRadioButtonId();
         if (selectedId == -1) {
             Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (questionTimer != null) {
-            questionTimer.cancel();
-        }
+        if (questionTimer != null) questionTimer.cancel();
         RadioButton selectedOption = findViewById(selectedId);
-        if (selectedOption == null) return;
         String selectedAnswerText = selectedOption.getText().toString();
         if (selectedAnswerText.equals(currentCorrectAnswer)) {
             correctCount++;
             resultText.setText("Correct!");
-            try {
-                selectedOption.setBackgroundColor(Color.GREEN);
-            } catch (Exception e) {
-                Log.e(TAG, "Error setting correct background: " + e.getMessage());
-            }
+            selectedOption.setBackgroundColor(Color.GREEN);
         } else {
             incorrectCount++;
             resultText.setText("Incorrect! Correct answer: " + currentCorrectAnswer);
-            try {
-                selectedOption.setBackgroundColor(Color.RED);
-            } catch (Exception e) {
-                Log.e(TAG, "Error setting incorrect background: " + e.getMessage());
-            }
+            selectedOption.setBackgroundColor(Color.RED);
             highlightCorrectAnswer();
         }
         currentQuestion++;
@@ -325,12 +271,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void highlightCorrectAnswer() {
         for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
-            if (option != null && option.getText().toString().equals(currentCorrectAnswer)) {
-                try {
-                    option.setBackgroundColor(Color.GREEN);
-                } catch (Exception e) {
-                    Log.e(TAG, "Error highlighting correct answer: " + e.getMessage());
-                }
+            if (option.getText().toString().equals(currentCorrectAnswer)) {
+                option.setBackgroundColor(Color.GREEN);
             }
         }
     }
@@ -339,23 +281,18 @@ public class MainActivity extends AppCompatActivity {
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.VISIBLE);
         resultText.setText("Quiz Completed! Correct: " + correctCount + ", Incorrect: " + incorrectCount);
-        try {
-            if (correctCount <= 3) {
-                gradeText.setText("Bad");
-                gradeEmoji.setImageResource(R.drawable.bad);
-            } else if (correctCount <= 6) {
-                gradeText.setText("Normal");
-                gradeEmoji.setImageResource(R.drawable.good);
-            } else if (correctCount <= 10) {
-                gradeText.setText("Good");
-                gradeEmoji.setImageResource(R.drawable.norm);
-            } else {
-                gradeText.setText("Excellent");
-                gradeEmoji.setImageResource(R.drawable.excellent);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error setting grade: " + e.getMessage());
-            gradeText.setText("Results");
+        if (correctCount <= 3) {
+            gradeText.setText("Bad");
+            gradeEmoji.setImageResource(R.drawable.bad);
+        } else if (correctCount <= 6) {
+            gradeText.setText("Normal");
+            gradeEmoji.setImageResource(R.drawable.good);
+        } else if (correctCount <= 10) {
+            gradeText.setText("Good");
+            gradeEmoji.setImageResource(R.drawable.norm);
+        } else {
+            gradeText.setText("Excellent");
+            gradeEmoji.setImageResource(R.drawable.excellent);
         }
         gradeText.setVisibility(View.VISIBLE);
         gradeEmoji.setVisibility(View.VISIBLE);
@@ -369,17 +306,7 @@ public class MainActivity extends AppCompatActivity {
             scoreData.put("incorrect", incorrectCount);
             scoreData.put("timestamp", System.currentTimeMillis());
             db.collection("users").document(userId).collection("scores")
-                    .add(scoreData)
-                    .addOnSuccessListener(documentReference -> {
-                        Log.d(TAG, "Score saved for user: " + userId);
-                        Toast.makeText(this, "Score saved", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to save score: " + e.getMessage());
-                        Toast.makeText(this, "Failed to save score", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            Log.w(TAG, "No user logged in when saving score");
+                    .add(scoreData);
         }
     }
 
@@ -418,8 +345,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (questionTimer != null) {
-            questionTimer.cancel();
-        }
+        if (questionTimer != null) questionTimer.cancel();
     }
 }

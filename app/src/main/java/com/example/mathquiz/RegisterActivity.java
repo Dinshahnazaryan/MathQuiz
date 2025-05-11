@@ -57,10 +57,13 @@ public class RegisterActivity extends AppCompatActivity {
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    if (s.length() > 0 && s.toString().trim().isEmpty()) {
-                        EditText editText = (EditText) findViewById(getCurrentFocus() != null ? getCurrentFocus().getId() : R.id.emailInput);
-                        editText.setText(s.toString().trim());
-                        editText.setSelection(editText.getText().length());
+                    if (s != null && s.length() > 0 && s.toString().trim().isEmpty()) {
+                        View focusedView = getCurrentFocus();
+                        if (focusedView instanceof EditText) {
+                            EditText editText = (EditText) focusedView;
+                            editText.setText(s.toString().trim());
+                            editText.setSelection(editText.getText().length());
+                        }
                     }
                 }
             };
@@ -100,8 +103,8 @@ public class RegisterActivity extends AppCompatActivity {
             registerBtn.setEnabled(false);
             loginText.setEnabled(false);
 
-            String email = emailInput.getText().toString().trim();
-            String password = passwordInput.getText().toString().trim();
+            String email = emailInput.getText() != null ? emailInput.getText().toString().trim() : "";
+            String password = passwordInput.getText() != null ? passwordInput.getText().toString().trim() : "";
 
             if (email.isEmpty() || password.isEmpty()) {
                 progressBar.setVisibility(View.GONE);
