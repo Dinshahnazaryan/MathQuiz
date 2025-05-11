@@ -20,6 +20,39 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/titleLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/startPromptText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed">
+
+        <ImageView
+            android:id="@+id/titleIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="Math Quiz Logo"
+            android:src="@drawable/ic_math_quiz" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="MathQuiz"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/startPromptText"
         android:layout_width="wrap_content"
@@ -32,8 +65,7 @@
         app:layout_constraintBottom_toTopOf="@id/startBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/titleLayout" />
 
     <Button
         android:id="@+id/startBtn"
@@ -70,8 +102,8 @@
 
             <ImageView
                 android:id="@+id/splashIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 android:contentDescription="Math Quiz Icon"
                 android:src="@drawable/ic_math_quiz" />
 
@@ -83,7 +115,7 @@
                 android:text="MathQuiz"
                 android:gravity="center"
                 android:textColor="#FFFFFF"
-                android:textSize="36sp"
+                android:textSize="60sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -17,10 +19,13 @@ import androidx.cardview.widget.CardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Source;
 
 public class AccountActivity extends AppCompatActivity {
     private static final String TAG = "AccountActivity";
     private static final long MIN_CLICK_INTERVAL = 1000;
+    private static final int MAX_RETRIES = 3;
+    private static final long RETRY_DELAY_MS = 2000;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView emailText, quizResultsText, passwordToggle;
@@ -36,6 +41,15 @@ public class AccountActivity extends AppCompatActivity {
             setContentView(R.layout.activity_account);
             mAuth = FirebaseAuth.getInstance();
             db = FirebaseFirestore.getInstance();
+
+            // Enable offline persistence
+            db.enableNetwork().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "Firestore network enabled");
+                } else {
+                    Log.e(TAG, "Failed to enable Firestore network: " + task.getException(), task.getException());
+                }
+            });
 
             emailText = findViewById(R.id.emailText);
             quizResultsText = findViewById(R.id.quizResultsText);
@@ -61,7 +75,7 @@ public class AccountActivity extends AppCompatActivity {
                 String email = user.getEmail() != null ? user.getEmail() : "No email";
                 emailText.setText("Email: " + email);
                 Log.d(TAG, "Displaying user email: " + email);
-                loadQuizResults(user.getUid());
+                loadQuizResults(user.getUid(), 0);
             } else {
                 Log.w(TAG, "No user signed in");
                 Toast.makeText(this, "No user signed in", Toast.LENGTH_LONG).show();
@@ -125,33 +139,81 @@ public class AccountActivity extends AppCompatActivity {
         return true;
     }
 
-    private void loadQuizResults(String userId) {
+    private void loadQuizResults(String userId, int retryCount) {
         try {
-            if (!isNetworkAvailable()) {
-                quizResultsText.setText("Quiz Results: No internet");
-                Log.w(TAG, "No network available for quiz results");
-                return;
+            if (isNetworkAvailable()) {
+                fetchFromServer(userId, retryCount);
+            } else {
+                Log.w(TAG, "No network available, attempting to load from cache");
+                fetchFromCache(userId);
+                Toast.makeText(this, "Offline: Trying cached quiz results", Toast.LENGTH_SHORT).show();
             }
-
-            db.collection("users").document(userId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Long score = documentSnapshot.getLong("totalScore");
-                            String results = score != null ? "Total Score: " + score : "No quiz results";
-                            quizResultsText.setText("Quiz Results: " + results);
-                            Log.d(TAG, "Quiz results loaded: " + results);
-                        } else {
-                            quizResultsText.setText("Quiz Results: No data");
-                            Log.w(TAG, "No quiz results for user: " + userId);
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        quizResultsText.setText("Quiz Results: Error");
-                        Log.e(TAG, "Error loading quiz results: " + e.getMessage(), e);
-                    });
         } catch (Exception e) {
             quizResultsText.setText("Quiz Results: Error");
             Log.e(TAG, "Error in loadQuizResults: " + e.getMessage(), e);
+            Toast.makeText(this, "Error loading quiz results: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void fetchFromServer(String userId, int retryCount) {
+        db.collection("users").document(userId).get(Source.SERVER)
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Object scoreObj = documentSnapshot.get("totalScore");
+                        String results = formatScore(scoreObj);
+                        quizResultsText.setText("Quiz Results: " + results);
+                        Log.d(TAG, "Quiz results loaded from server: " + results);
+                    } else {
+                        Log.w(TAG, "No document for user on server: " + userId);
+                        fetchFromCache(userId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading quiz results from server: " + e.getMessage(), e);
+                    if (retryCount < MAX_RETRIES && e.getMessage().contains("offline")) {
+                        Log.d(TAG, "Retrying server fetch, attempt " + (retryCount + 1));
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            loadQuizResults(userId, retryCount + 1);
+                        }, RETRY_DELAY_MS);
+                    } else {
+                        quizResultsText.setText("Quiz Results: Server offline");
+                        Toast.makeText(this, "Server offline: Trying cached quiz results", Toast.LENGTH_LONG).show();
+                        fetchFromCache(userId);
+                    }
+                });
+    }
+
+    private void fetchFromCache(String userId) {
+        db.collection("users").document(userId).get(Source.CACHE)
+                .addOnSuccessListener(cachedSnapshot -> {
+                    if (cachedSnapshot.exists()) {
+                        Object scoreObj = cachedSnapshot.get("totalScore");
+                        String results = formatScore(scoreObj);
+                        quizResultsText.setText("Quiz Results: " + results);
+                        Log.d(TAG, "Quiz results loaded from cache: " + results);
+                    } else {
+                        quizResultsText.setText("Quiz Results: No cached data");
+                        Log.w(TAG, "No cached document for user: " + userId);
+                        Toast.makeText(this, "No quiz results in cache. Connect to internet to fetch data.", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    quizResultsText.setText("Quiz Results: Cache error");
+                    Log.e(TAG, "Error loading quiz results from cache: " + e.getMessage(), e);
+                    Toast.makeText(this, "Failed to load quiz results from cache. Try connecting to internet.", Toast.LENGTH_LONG).show();
+                });
+    }
+
+    private String formatScore(Object scoreObj) {
+        if (scoreObj instanceof Long) {
+            return "Total Score: " + scoreObj;
+        } else if (scoreObj instanceof Integer) {
+            return "Total Score: " + scoreObj;
+        } else if (scoreObj instanceof String) {
+            return "Total Score: " + scoreObj;
+        } else {
+            Log.w(TAG, "totalScore field missing or invalid type");
+            return "No quiz results";
         }
     }
 

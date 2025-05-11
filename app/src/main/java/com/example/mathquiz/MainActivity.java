@@ -1,5 +1,6 @@
 package com.example.mathquiz;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -31,20 +32,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private TextView questionProgressText, questionText, resultText, splashText, gradeText;
+    private TextView questionProgressText, questionText, resultText, splashText, gradeText, startPromptText, titleText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn, homeBtn;
     private ImageButton accountBtn;
     private ProgressBar timerProgress, splashProgress;
-    private LinearLayout splashLayout, quizLayout, resultLayout;
+    private LinearLayout splashLayout, quizLayout, resultLayout, titleLayout;
     private CountDownTimer questionTimer;
-    private ImageView gradeEmoji, splashIcon;
+    private ImageView gradeEmoji, splashIcon, titleIcon;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private ExecutorService executorService;
     private String[] questions = {
             "What is the sum of 130 + 125 + 191?",
             "If we minus 712 from 1500, how much do we get?",
@@ -85,9 +89,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        executorService = Executors.newSingleThreadExecutor();
         splashLayout = findViewById(R.id.splashLayout);
         quizLayout = findViewById(R.id.quizLayout);
         resultLayout = findViewById(R.id.resultLayout);
+        titleLayout = findViewById(R.id.titleLayout);
         questionProgressText = findViewById(R.id.questionProgressText);
         questionText = findViewById(R.id.questionText);
         answerOptions = findViewById(R.id.answerOptions);
@@ -101,11 +107,14 @@ public class MainActivity extends AppCompatActivity {
         accountBtn = findViewById(R.id.accountBtn);
         resultText = findViewById(R.id.resultText);
         splashText = findViewById(R.id.splashText);
+        startPromptText = findViewById(R.id.startPromptText);
+        titleText = findViewById(R.id.titleText);
         timerProgress = findViewById(R.id.timerProgress);
         splashProgress = findViewById(R.id.splashProgress);
         gradeText = findViewById(R.id.gradeText);
         gradeEmoji = findViewById(R.id.gradeEmoji);
         splashIcon = findViewById(R.id.splashIcon);
+        titleIcon = findViewById(R.id.titleIcon);
 
         GradientDrawable normal = new GradientDrawable();
         normal.setShape(GradientDrawable.OVAL);
@@ -137,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         splashProgress.setMax(100);
-        new CountDownTimer(3000, 30) {
+        new CountDownTimer(3000, 100) { // Reduced tick rate to lower CPU usage
             public void onTick(long millisUntilFinished) {
                 splashProgress.setProgress((int) ((3000 - millisUntilFinished) / 30));
             }
@@ -153,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
                     splashLayout.setVisibility(View.GONE);
                     questionText.setVisibility(View.VISIBLE);
                     startBtn.setVisibility(View.VISIBLE);
+                    startPromptText.setVisibility(View.VISIBLE);
+                    titleLayout.setVisibility(View.VISIBLE);
                     resultText.setVisibility(View.VISIBLE);
                     accountBtn.setVisibility(View.VISIBLE);
                 }
@@ -193,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
         gradeEmoji.setVisibility(View.GONE);
         splashLayout.setVisibility(View.GONE);
         startBtn.setVisibility(View.GONE);
+        startPromptText.setVisibility(View.GONE);
+        titleLayout.setVisibility(View.GONE);
         homeBtn.setVisibility(View.GONE);
         accountBtn.setVisibility(View.VISIBLE);
         quizLayout.setVisibility(View.VISIBLE);
@@ -218,10 +231,6 @@ public class MainActivity extends AppCompatActivity {
             option3.setText(currentOptionsList.get(2));
             option4.setText(currentOptionsList.get(3));
             currentCorrectAnswer = correctAnswersText[currentQuestion];
-            option1.setBackgroundColor(Color.WHITE);
-            option2.setBackgroundColor(Color.WHITE);
-            option3.setBackgroundColor(Color.WHITE);
-            option4.setBackgroundColor(Color.WHITE);
             answerOptions.clearCheck();
             startQuestionTimer();
         } else {
@@ -232,10 +241,11 @@ public class MainActivity extends AppCompatActivity {
     private void startQuestionTimer() {
         if (questionTimer != null) questionTimer.cancel();
         timerProgress.setMax(100);
-        questionTimer = new CountDownTimer(15000, 150) {
+        questionTimer = new CountDownTimer(15000, 500) { // Reduced tick rate
             public void onTick(long millisUntilFinished) {
                 timerProgress.setProgress((int) ((15000 - millisUntilFinished) / 150));
             }
+            @SuppressLint("SetTextI18n")
             public void onFinish() {
                 incorrectCount++;
                 resultText.setText("Time's up! Correct answer: " + currentCorrectAnswer);
@@ -246,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
+    @SuppressLint("SetTextI18n")
     private void submitAnswer() {
         int selectedId = answerOptions.getCheckedRadioButtonId();
         if (selectedId == -1) {
@@ -273,10 +284,13 @@ public class MainActivity extends AppCompatActivity {
         for (RadioButton option : new RadioButton[]{option1, option2, option3, option4}) {
             if (option.getText().toString().equals(currentCorrectAnswer)) {
                 option.setBackgroundColor(Color.GREEN);
+            } else {
+                option.setBackgroundColor(Color.WHITE); // Reset other options
             }
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private void showResults() {
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.VISIBLE);
@@ -305,8 +319,27 @@ public class MainActivity extends AppCompatActivity {
             scoreData.put("correct", correctCount);
             scoreData.put("incorrect", incorrectCount);
             scoreData.put("timestamp", System.currentTimeMillis());
-            db.collection("users").document(userId).collection("scores")
-                    .add(scoreData);
+            executorService.execute(() -> {
+                db.collection("users").document(userId).collection("scores")
+                        .add(scoreData)
+                        .addOnSuccessListener(docRef -> Log.d(TAG, "Score saved to subcollection"))
+                        .addOnFailureListener(e -> Log.e(TAG, "Error saving score: " + e.getMessage(), e));
+                db.collection("users").document(userId)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            long currentTotalScore = documentSnapshot.exists() && documentSnapshot.getLong("totalScore") != null
+                                    ? documentSnapshot.getLong("totalScore")
+                                    : 0;
+                            long newTotalScore = currentTotalScore + correctCount;
+                            Map<String, Object> userData = new HashMap<>();
+                            userData.put("totalScore", newTotalScore);
+                            db.collection("users").document(userId)
+                                    .set(userData, com.google.firebase.firestore.SetOptions.merge())
+                                    .addOnSuccessListener(aVoid -> Log.d(TAG, "totalScore updated: " + newTotalScore))
+                                    .addOnFailureListener(e -> Log.e(TAG, "Error updating totalScore: " + e.getMessage(), e));
+                        })
+                        .addOnFailureListener(e -> Log.e(TAG, "Error fetching totalScore: " + e.getMessage(), e));
+            });
         }
     }
 
@@ -320,6 +353,8 @@ public class MainActivity extends AppCompatActivity {
         questionText.setText("");
         questionText.setVisibility(View.VISIBLE);
         startBtn.setVisibility(View.VISIBLE);
+        startPromptText.setVisibility(View.VISIBLE);
+        titleLayout.setVisibility(View.VISIBLE);
         homeBtn.setVisibility(View.GONE);
         accountBtn.setVisibility(View.VISIBLE);
         resultText.setText("");
@@ -332,6 +367,7 @@ public class MainActivity extends AppCompatActivity {
         questionProgressText.setVisibility(View.GONE);
     }
 
+    @SuppressLint("SetTextI18n")
     private void updateQuestionProgress() {
         questionProgressText.setText((currentQuestion + 1) + "/" + questions.length);
     }
@@ -346,5 +382,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (questionTimer != null) questionTimer.cancel();
+        executorService.shutdown();
     }
 }
