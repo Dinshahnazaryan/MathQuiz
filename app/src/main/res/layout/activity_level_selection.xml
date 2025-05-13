@@ -31,6 +31,148 @@
         app:layout_constraintTop_toBottomOf="@id/title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/level1Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level2Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level3Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level4Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="4"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level5Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="5"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level6Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="6"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level7Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="7"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level8Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="8"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level9Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="9"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+        <Button
+            android:id="@+id/level10Btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/edittext_background_new"
+            android:gravity="center"
+            android:text="10"
+            android:textColor="@color/primary_blue"
+            android:textSize="30sp"
+            android:scaleType="centerInside"
+            app:layout_columnWeight="1"
+            app:layout_gravity="fill" />
+
+    </GridLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
