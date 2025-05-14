@@ -44,13 +44,11 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setOnClickListener(v -> loginUser());
 
-        forgotPasswordText.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
-        });
+        forgotPasswordText.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
 
-        registerText.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-        });
+        registerText.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
     private void loginUser() {
@@ -102,32 +100,24 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                                 navigateToMainActivity(email);
                             } else {
-                                user.sendEmailVerification()
-                                        .addOnCompleteListener(verifyTask -> {
-                                            if (verifyTask.isSuccessful()) {
-                                                Log.d(TAG, "Verification email sent to " + email);
-                                                Toast.makeText(LoginActivity.this, "Verification email sent to " + email, Toast.LENGTH_LONG).show();
-                                            } else {
-                                                String errorMsg = verifyTask.getException() != null ? verifyTask.getException().getMessage() : "Failed to send verification email";
-                                                Log.e(TAG, "Failed to send verification email: " + errorMsg);
-                                                Toast.makeText(LoginActivity.this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
-                                            }
-                                        });
+                                user.sendEmailVerification().addOnCompleteListener(verifyTask -> {
+                                    if (verifyTask.isSuccessful()) {
+                                        Toast.makeText(LoginActivity.this, "Verification email sent to " + email, Toast.LENGTH_LONG).show();
+                                    } else {
+                                        String error = verifyTask.getException() != null ? verifyTask.getException().getMessage() : "Error sending verification email";
+                                        Toast.makeText(LoginActivity.this, "Failed to send verification email: " + error, Toast.LENGTH_LONG).show();
+                                    }
+                                });
                                 mAuth.signOut();
-                                Toast.makeText(LoginActivity.this, "Please verify your email to log in", Toast.LENGTH_LONG).show();
-                                Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                finish();
+                                Toast.makeText(LoginActivity.this, "Please verify your email before login", Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Log.e(TAG, "Login failed: User is null");
-                            Toast.makeText(LoginActivity.this, "Login failed: User not found", Toast.LENGTH_LONG).show();
+                            Toast.makeText(LoginActivity.this, "Login failed: user is null", Toast.LENGTH_LONG).show();
                         }
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Login failed";
-                        Log.e(TAG, "Login failed: " + errorMsg, task.getException());
                         Toast.makeText(LoginActivity.this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Login failed", task.getException());
                     }
                 });
     }
@@ -143,8 +133,6 @@ public class LoginActivity extends AppCompatActivity {
     private boolean isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isAvailable = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        Log.d(TAG, "Network available: " + isAvailable);
-        return isAvailable;
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 }

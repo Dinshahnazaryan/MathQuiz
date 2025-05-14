@@ -27,10 +27,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
     private TextView questionText, questionProgressText, resultText, gradeText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
-    private Button submitAnswerBtn, startBtn, homeBtn;
+    private Button submitAnswerBtn, startBtn, homeBtn, learnTopicsBtn;
     private ImageButton accountBtn, levelsBtn;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout quizLayout, resultLayout, titleLayout, splashLayout;
@@ -74,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
         homeBtn.setOnClickListener(v -> returnToStart());
         accountBtn.setOnClickListener(v -> startActivity(new Intent(this, AccountActivity.class)));
         levelsBtn.setOnClickListener(v -> startActivity(new Intent(this, LevelSelectionActivity.class)));
+        learnTopicsBtn.setOnClickListener(v -> startActivity(new Intent(this, TopicExplanationActivity.class)));
 
-        // Enable submit button and highlight selected option
         answerOptions.setOnCheckedChangeListener((group, checkedId) -> {
             submitAnswerBtn.setEnabled(checkedId != -1);
             highlightSelectedOption(checkedId);
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         homeBtn = findViewById(R.id.homeBtn);
         accountBtn = findViewById(R.id.accountBtn);
         levelsBtn = findViewById(R.id.levelsBtn);
+        learnTopicsBtn = findViewById(R.id.learnTopicsBtn);
         resultText = findViewById(R.id.resultText);
         gradeText = findViewById(R.id.gradeText);
         timerProgress = findViewById(R.id.timerProgress);
@@ -110,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         splashLayout.setVisibility(View.VISIBLE);
         titleLayout.setVisibility(View.GONE);
         startBtn.setVisibility(View.GONE);
+        learnTopicsBtn.setVisibility(View.GONE);
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.GONE);
 
@@ -123,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 splashLayout.setVisibility(View.GONE);
                 titleLayout.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.VISIBLE);
+                learnTopicsBtn.setVisibility(View.VISIBLE);
             }
         }.start();
     }
@@ -160,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
             quizLayout.setVisibility(View.VISIBLE);
             titleLayout.setVisibility(View.GONE);
             startBtn.setVisibility(View.GONE);
+            learnTopicsBtn.setVisibility(View.GONE);
             showNextQuestion();
         });
     }
@@ -212,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         if (questionTimer != null) questionTimer.cancel();
         RadioButton selectedOption = findViewById(selectedId);
         String selectedAnswer = selectedOption.getText().toString();
-        resetOptionColors(); // Clear selection highlight before showing result
+        resetOptionColors();
         if (selectedAnswer.equals(currentCorrectAnswer)) {
             correctCount++;
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
@@ -226,9 +231,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void highlightSelectedOption(int checkedId) {
-        // Reset all options to default color
         resetOptionColors();
-        // Highlight selected option
         if (checkedId != -1) {
             RadioButton selectedOption = findViewById(checkedId);
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
@@ -290,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
         resultLayout.setVisibility(View.GONE);
         titleLayout.setVisibility(View.VISIBLE);
         startBtn.setVisibility(View.VISIBLE);
+        learnTopicsBtn.setVisibility(View.VISIBLE);
     }
 
     @Override

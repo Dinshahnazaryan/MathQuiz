@@ -69,5 +69,10 @@
             android:exported="true"
             android:theme="@style/AppTheme" />
 
+        <activity
+            android:name=".TopicExplanationActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme"/>
+
     </application>
 </manifest>
