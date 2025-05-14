@@ -64,6 +64,8 @@
             android:exported="false"
             android:theme="@style/AppTheme" />
 
+        <activity android:name=".LevelSelectionActivity" />
+
     </application>
 
 </manifest>

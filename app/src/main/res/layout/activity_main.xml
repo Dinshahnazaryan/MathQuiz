@@ -6,7 +6,6 @@
     android:padding="24dp"
     android:background="@color/dark_blue">
 
-
     <ImageButton
         android:id="@+id/accountBtn"
         android:layout_width="72dp"
@@ -21,13 +20,11 @@
         app:layout_constraintEnd_toStartOf="@id/levelsBtn"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <ImageButton
         android:id="@+id/levelsBtn"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="0dp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginTop="16dp"
         android:background="@null"
         android:contentDescription="Levels"
         android:src="@drawable/ic_levels"
@@ -42,13 +39,11 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/startPromptText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed">
+        app:layout_constraintTop_toBottomOf="@id/accountBtn">
 
         <ImageView
             android:id="@+id/titleIcon"
@@ -166,7 +161,7 @@
             android:textSize="24sp"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/timerProgress"
@@ -176,7 +171,7 @@
             android:layout_marginBottom="16dp"
             android:max="100"
             android:progressTint="#FFFFFF"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <TextView
             android:id="@+id/questionText"
@@ -195,7 +190,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:orientation="vertical"
-            android:visibility="gone"
+            android:visibility="visible"
             android:clickable="true"
             android:enabled="true">
 
@@ -269,7 +264,7 @@
             android:text="Submit Answer"
             android:textColor="#1A237E"
             android:textSize="18sp"
-            android:visibility="gone" />
+            android:visibility="visible" />
     </LinearLayout>
 
     <LinearLayout
@@ -292,7 +287,7 @@
             android:gravity="center"
             android:textColor="#FFFFFF"
             android:textSize="30sp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <ImageView
             android:id="@+id/gradeEmoji"
@@ -300,7 +295,7 @@
             android:layout_height="64dp"
             android:layout_marginTop="8dp"
             android:contentDescription="Grade Emoji"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <TextView
             android:id="@+id/resultText"
@@ -311,7 +306,7 @@
             android:gravity="center"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/homeBtn"
@@ -323,6 +318,6 @@
             android:text="Home"
             android:textColor="#1A237E"
             android:textSize="18sp"
-            android:visibility="gone" />
+            android:visibility="visible" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

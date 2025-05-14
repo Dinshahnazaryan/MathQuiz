@@ -23,9 +23,8 @@ public class LevelSelectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_level_selection);
 
         SharedPreferences prefs = getSharedPreferences("quizPrefs", Context.MODE_PRIVATE);
-
-
         levelButtons = new Button[TOTAL_LEVELS];
+
         levelButtons[0] = findViewById(R.id.level1Btn);
         levelButtons[1] = findViewById(R.id.level2Btn);
         levelButtons[2] = findViewById(R.id.level3Btn);
@@ -37,50 +36,41 @@ public class LevelSelectionActivity extends AppCompatActivity {
         levelButtons[8] = findViewById(R.id.level9Btn);
         levelButtons[9] = findViewById(R.id.level10Btn);
 
-
         for (int i = 0; i < TOTAL_LEVELS; i++) {
             final int level = i + 1;
             Button button = levelButtons[i];
 
-
-            boolean unlocked = (level == 1) || (prefs.getInt("level" + (level - 1) + "_passes", 0) >= 5);
-
+            boolean unlocked = (level == 1) || (prefs.getInt("level" + (level - 1) + "_passes", 0) >= 3);
 
             String imageUri = prefs.getString("level" + level + "_image", null);
             if (imageUri != null) {
                 try {
-
                     InputStream inputStream = getContentResolver().openInputStream(Uri.parse(imageUri));
                     Drawable drawable = Drawable.createFromStream(inputStream, imageUri);
                     inputStream.close();
                     if (drawable != null) {
-                        button.setBackground(null); // Remove default background
-                        drawable.setBounds(0, 0, 100, 100); // Adjust size to fit button (100x100dp)
+                        button.setBackground(null);
+                        drawable.setBounds(0, 0, 100, 100);
                         button.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
                     } else {
-
                         setDefaultDrawable(button, unlocked);
                     }
                 } catch (IOException e) {
-
                     setDefaultDrawable(button, unlocked);
                 }
             } else {
-
                 setDefaultDrawable(button, unlocked);
             }
 
-
             button.setOnClickListener(v -> {
                 if (unlocked) {
-                    Toast.makeText(this, "Level " + level + " is unlocked!", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(LevelSelectionActivity.this, MainActivity.class);
                     intent.putExtra("level", level);
                     startActivity(intent);
                 } else {
                     int passes = prefs.getInt("level" + (level - 1) + "_passes", 0);
-                    int remaining = Math.max(0, 5 - passes);
-                    String msg = "You need " + remaining + " more high-score completions on Level " + (level - 1) + " to unlock this level.";
+                    int remaining = Math.max(0, 3 - passes);
+                    String msg = "You need " + remaining + " more excellent completions on Level " + (level - 1) + " to unlock this level.";
                     Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
                 }
             });
@@ -89,7 +79,7 @@ public class LevelSelectionActivity extends AppCompatActivity {
 
     private void setDefaultDrawable(Button button, boolean unlocked) {
         Drawable drawable = getResources().getDrawable(unlocked ? R.drawable.ic_unlocked : R.drawable.ic_locked);
-        drawable.setBounds(0, 0, 60, 60); // Adjust size for lock/unlock icons
+        drawable.setBounds(0, 0, 60, 60);
         button.setBackgroundResource(R.drawable.level_item_background);
         button.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
     }

@@ -33,6 +33,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Buttons for each level -->
         <Button
             android:id="@+id/level1Btn"
             android:layout_width="100dp"
@@ -43,9 +44,7 @@
             android:text="1"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level2Btn"
@@ -57,9 +56,7 @@
             android:text="2"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level3Btn"
@@ -71,9 +68,7 @@
             android:text="3"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level4Btn"
@@ -85,9 +80,7 @@
             android:text="4"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level5Btn"
@@ -99,9 +92,7 @@
             android:text="5"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level6Btn"
@@ -113,9 +104,7 @@
             android:text="6"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level7Btn"
@@ -127,9 +116,7 @@
             android:text="7"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level8Btn"
@@ -141,9 +128,7 @@
             android:text="8"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level9Btn"
@@ -155,9 +140,7 @@
             android:text="9"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
         <Button
             android:id="@+id/level10Btn"
@@ -169,10 +152,7 @@
             android:text="10"
             android:textColor="@color/primary_blue"
             android:textSize="30sp"
-            android:scaleType="centerInside"
-            app:layout_columnWeight="1"
-            app:layout_gravity="fill" />
+            android:layout_gravity="fill" />
 
     </GridLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
