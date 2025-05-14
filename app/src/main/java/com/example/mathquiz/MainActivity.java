@@ -67,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         initViews();
-
-        // Show splash screen briefly
         showSplashScreen();
 
         startBtn.setOnClickListener(v -> startQuiz());
@@ -77,7 +75,11 @@ public class MainActivity extends AppCompatActivity {
         accountBtn.setOnClickListener(v -> startActivity(new Intent(this, AccountActivity.class)));
         levelsBtn.setOnClickListener(v -> startActivity(new Intent(this, LevelSelectionActivity.class)));
 
-        answerOptions.setOnCheckedChangeListener((group, checkedId) -> submitAnswerBtn.setEnabled(checkedId != -1));
+        // Enable submit button and highlight selected option
+        answerOptions.setOnCheckedChangeListener((group, checkedId) -> {
+            submitAnswerBtn.setEnabled(checkedId != -1);
+            highlightSelectedOption(checkedId);
+        });
     }
 
     private void initViews() {
@@ -111,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.GONE);
 
-        // Simulate splash screen loading (e.g., 3 seconds)
         new CountDownTimer(3000, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -122,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
                 splashLayout.setVisibility(View.GONE);
                 titleLayout.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.VISIBLE);
-                findViewById(R.id.startPromptText).setVisibility(View.VISIBLE);
             }
         }.start();
     }
@@ -160,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
             quizLayout.setVisibility(View.VISIBLE);
             titleLayout.setVisibility(View.GONE);
             startBtn.setVisibility(View.GONE);
-            findViewById(R.id.startPromptText).setVisibility(View.GONE);
             showNextQuestion();
         });
     }
@@ -171,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         answerOptions.clearCheck();
+        resetOptionColors();
         submitAnswerBtn.setEnabled(false);
         QuizItem item = quizItems.get(questionOrder.get(currentQuestion));
         questionText.setText(item.question);
@@ -188,25 +188,22 @@ public class MainActivity extends AppCompatActivity {
     private void startQuestionTimer() {
         if (questionTimer != null) questionTimer.cancel();
         timerProgress.setMax(100);
-        timerProgress.setProgress(100); // Start at 100 for countdown
+        timerProgress.setProgress(100);
         remainingTime = 15000;
         questionTimer = new CountDownTimer(15000, 100) {
             @Override
             public void onTick(long ms) {
                 remainingTime = ms;
-                timerProgress.setProgress((int) (ms / 150)); // Decrease from 100 to 0
-                Log.d("MathQuiz", "Timer tick: " + ms + "ms remaining");
+                timerProgress.setProgress((int) (ms / 150));
             }
             @Override
             public void onFinish() {
                 incorrectCount++;
                 resultText.setText("Time's up! Correct: " + currentCorrectAnswer);
                 currentQuestion++;
-                Log.d("MathQuiz", "Timer finished");
-                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 1000);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
             }
         }.start();
-        Log.d("MathQuiz", "Timer started");
     }
 
     private void submitAnswer() {
@@ -215,30 +212,63 @@ public class MainActivity extends AppCompatActivity {
         if (questionTimer != null) questionTimer.cancel();
         RadioButton selectedOption = findViewById(selectedId);
         String selectedAnswer = selectedOption.getText().toString();
+        resetOptionColors(); // Clear selection highlight before showing result
         if (selectedAnswer.equals(currentCorrectAnswer)) {
-            int bonus = (int) (remainingTime / 3000);
-            correctCount += 1 + bonus;
-            resultText.setText("Correct!");
+            correctCount++;
+            selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
         } else {
             incorrectCount++;
-            resultText.setText("Incorrect! Correct: " + currentCorrectAnswer);
+            selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+            highlightCorrectAnswer();
         }
         currentQuestion++;
         new Handler(Looper.getMainLooper()).postDelayed(this::showNextQuestion, 2000);
+    }
+
+    private void highlightSelectedOption(int checkedId) {
+        // Reset all options to default color
+        resetOptionColors();
+        // Highlight selected option
+        if (checkedId != -1) {
+            RadioButton selectedOption = findViewById(checkedId);
+            selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+        }
+    }
+
+    private void resetOptionColors() {
+        option1.setBackgroundColor(getResources().getColor(android.R.color.white));
+        option2.setBackgroundColor(getResources().getColor(android.R.color.white));
+        option3.setBackgroundColor(getResources().getColor(android.R.color.white));
+        option4.setBackgroundColor(getResources().getColor(android.R.color.white));
+    }
+
+    private void highlightCorrectAnswer() {
+        if (option1.getText().toString().equals(currentCorrectAnswer)) {
+            option1.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+        } else if (option2.getText().toString().equals(currentCorrectAnswer)) {
+            option2.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+        } else if (option3.getText().toString().equals(currentCorrectAnswer)) {
+            option3.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+        } else if (option4.getText().toString().equals(currentCorrectAnswer)) {
+            option4.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+        }
     }
 
     private void showResults() {
         quizLayout.setVisibility(View.GONE);
         resultLayout.setVisibility(View.VISIBLE);
         int percentage = (correctCount * 100) / questionOrder.size();
-        gradeText.setText(percentage + "%");
+        gradeText.setText(percentage + "%\nCorrect: " + correctCount + "\nIncorrect: " + incorrectCount);
 
-        // Set grade emoji based on percentage
         ImageView gradeEmoji = findViewById(R.id.gradeEmoji);
-        if (percentage >= 80) {
-            gradeEmoji.setImageResource(R.drawable.ic_success); // Ensure you have this drawable
+        if (correctCount <= 3) {
+            gradeEmoji.setImageResource(R.drawable.bad);
+        } else if (correctCount <= 6) {
+            gradeEmoji.setImageResource(R.drawable.norm);
+        } else if (correctCount <= 9) {
+            gradeEmoji.setImageResource(R.drawable.good);
         } else {
-            gradeEmoji.setImageResource(R.drawable.ic_fail); // Ensure you have this drawable
+            gradeEmoji.setImageResource(R.drawable.excellent);
         }
 
         int level = getIntent().getIntExtra("level", 1);
@@ -260,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
         resultLayout.setVisibility(View.GONE);
         titleLayout.setVisibility(View.VISIBLE);
         startBtn.setVisibility(View.VISIBLE);
-        findViewById(R.id.startPromptText).setVisibility(View.VISIBLE);
     }
 
     @Override

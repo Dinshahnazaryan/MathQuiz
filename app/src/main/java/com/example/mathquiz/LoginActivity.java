@@ -51,8 +51,6 @@ public class LoginActivity extends AppCompatActivity {
         registerText.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
-
-        // Auto-login logic has been removed from here
     }
 
     private void loginUser() {
@@ -83,7 +81,6 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-
         if (!isNetworkAvailable()) {
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
             return;
@@ -99,13 +96,33 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null && user.isEmailVerified()) {
-                            Log.d(TAG, "Login successful for user: " + email);
-                            Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                            navigateToMainActivity(email);
+                        if (user != null) {
+                            if (user.isEmailVerified()) {
+                                Log.d(TAG, "Login successful for user: " + email);
+                                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                                navigateToMainActivity(email);
+                            } else {
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(verifyTask -> {
+                                            if (verifyTask.isSuccessful()) {
+                                                Log.d(TAG, "Verification email sent to " + email);
+                                                Toast.makeText(LoginActivity.this, "Verification email sent to " + email, Toast.LENGTH_LONG).show();
+                                            } else {
+                                                String errorMsg = verifyTask.getException() != null ? verifyTask.getException().getMessage() : "Failed to send verification email";
+                                                Log.e(TAG, "Failed to send verification email: " + errorMsg);
+                                                Toast.makeText(LoginActivity.this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
+                                            }
+                                        });
+                                mAuth.signOut();
+                                Toast.makeText(LoginActivity.this, "Please verify your email to log in", Toast.LENGTH_LONG).show();
+                                Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            }
                         } else {
-                            Toast.makeText(LoginActivity.this, "Please verify your email", Toast.LENGTH_LONG).show();
-                            mAuth.signOut();
+                            Log.e(TAG, "Login failed: User is null");
+                            Toast.makeText(LoginActivity.this, "Login failed: User not found", Toast.LENGTH_LONG).show();
                         }
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Login failed";
