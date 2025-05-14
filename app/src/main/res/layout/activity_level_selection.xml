@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_blue"
@@ -23,136 +24,161 @@
         android:id="@+id/levelGrid"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:columnCount="3"
-        android:rowCount="4"
-        android:padding="8dp"
         android:alignmentMode="alignMargins"
+        android:columnCount="3"
+        android:padding="8dp"
+        android:rowCount="4"
         android:useDefaultMargins="true"
-        app:layout_constraintTop_toBottomOf="@id/title"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/title"> <!-- Удалены bias -->
 
-        <!-- Buttons for each level -->
         <Button
             android:id="@+id/level1Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="1"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level2Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="2"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level3Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="3"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level4Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="4"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level5Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="5"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level6Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="6"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level7Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_row="2"
+            android:layout_column="0"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="7"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level8Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="8"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/level9Btn"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="9"
-            android:textColor="@color/primary_blue"
+            android:textColor="#039BE5"
             android:textSize="30sp"
-            android:layout_gravity="fill" />
+            tools:ignore="DuplicateClickableBoundsCheck" />
 
         <Button
             android:id="@+id/level10Btn"
             android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_height="249dp"
+            android:layout_row="3"
+            android:layout_column="0"
+            android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:background="@drawable/edittext_background_new"
+            android:background="@android:color/white"
             android:gravity="center"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:text="10"
-            android:textColor="@color/primary_blue"
-            android:textSize="30sp"
-            android:layout_gravity="fill" />
+            android:textColor="#039BE5"
+            android:textSize="30sp" />
+
 
     </GridLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

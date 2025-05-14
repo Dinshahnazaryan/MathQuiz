@@ -31,7 +31,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:theme="@style/AppTheme" />
 
         <activity
@@ -64,8 +64,10 @@
             android:exported="false"
             android:theme="@style/AppTheme" />
 
-        <activity android:name=".LevelSelectionActivity" />
+        <activity
+            android:name=".LevelSelectionActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme" />
 
     </application>
-
 </manifest>
