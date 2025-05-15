@@ -129,7 +129,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="24dp"
-                        android:background="#1A237E"
+                        android:background="@drawable/button_background"
                         android:contentDescription="Log In Button"
                         android:text="Log In"
                         android:textColor="#FFFFFF"

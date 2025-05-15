@@ -58,4 +58,5 @@
     <item name="level8Btn" type="id" />
     <item name="level9Btn" type="id" />
     <item name="level10Btn" type="id" />
+    <item name="learnTopicsContentLayout" type="id" />
 </resources>

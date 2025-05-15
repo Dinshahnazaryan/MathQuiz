@@ -120,11 +120,11 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(this, "Invalid email", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
+            if (!password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$")) {
                 progressBar.setVisibility(View.GONE);
                 registerBtn.setEnabled(true);
                 loginText.setEnabled(true);
-                Toast.makeText(this, "Password must be 8+ chars with letters and numbers", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Password must be 6+ chars with letters and numbers", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!isNetworkAvailable()) {
@@ -154,11 +154,23 @@ public class RegisterActivity extends AppCompatActivity {
                                                 Toast.makeText(this, "Failed to send verification email: " + errorMsg, Toast.LENGTH_LONG).show();
                                             }
                                         });
-                                mAuth.signOut();
-                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                finish();
+                                // Check if email is verified (unlikely immediately after registration)
+                                if (user.isEmailVerified()) {
+                                    // Navigate to MainActivity if verified
+                                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                    intent.putExtra("email", email);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                } else {
+                                    // Sign out and prompt for verification
+                                    mAuth.signOut();
+                                    Toast.makeText(this, "Please verify your email before logging in", Toast.LENGTH_LONG).show();
+                                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                }
                             } else {
                                 Toast.makeText(this, "Registration failed: User not found", Toast.LENGTH_LONG).show();
                             }

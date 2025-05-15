@@ -24,10 +24,10 @@
             android:gravity="center">
 
             <TextView
-                android:id="@+id/accountTitle"
+                android:id="@+id/MenuTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Account"
+                android:text="Menu"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
@@ -188,6 +188,45 @@
                         android:text="Quiz Results: "
                         android:textSize="16sp"
                         android:textColor="@color/dark_blue" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- New Learn Topics Section -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Learn Topics"
+                        android:textSize="14sp"
+                        android:textColor="@color/gray_700" />
+
+                    <TextView
+                        android:id="@+id/learnTopicsArrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=">"
+                        android:textSize="16sp"
+                        android:textColor="@color/dark_blue"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
