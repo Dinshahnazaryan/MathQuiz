@@ -7,7 +7,10 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,14 +28,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private TextView questionText, questionProgressText, resultText, gradeText;
+    private TextView questionText, questionProgressText, resultText, gradeText, levelText;
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
-    private Button submitAnswerBtn, startBtn, homeBtn, learnTopicsBtn;
+    private Button submitAnswerBtn, startBtn, homeBtn;
     private ImageButton accountBtn, levelsBtn;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout quizLayout, resultLayout, titleLayout, splashLayout;
@@ -69,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Check authentication status
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null || !currentUser.isEmailVerified()) {
             Toast.makeText(this, "Please log in to continue", Toast.LENGTH_SHORT).show();
@@ -81,15 +85,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         initViews();
+        displayUserLevel(getIntent());
         showSplashScreen();
 
-        // Set click listeners
         if (startBtn != null) startBtn.setOnClickListener(v -> startQuiz());
         if (submitAnswerBtn != null) submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         if (homeBtn != null) homeBtn.setOnClickListener(v -> returnToStart());
         if (accountBtn != null) accountBtn.setOnClickListener(v -> startActivity(new Intent(this, AccountActivity.class)));
         if (levelsBtn != null) levelsBtn.setOnClickListener(v -> startActivity(new Intent(this, LevelSelectionActivity.class)));
-        if (learnTopicsBtn != null) learnTopicsBtn.setOnClickListener(v -> startActivity(new Intent(this, TopicExplanationActivity.class)));
 
         if (answerOptions != null) {
             answerOptions.setOnCheckedChangeListener((group, checkedId) -> {
@@ -97,6 +100,25 @@ public class MainActivity extends AppCompatActivity {
                 highlightSelectedOption(checkedId);
             });
         }
+
+        Animation scaleAnim = AnimationUtils.loadAnimation(this, R.anim.scale_button);
+        View.OnTouchListener scaleTouchListener = (v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                v.startAnimation(scaleAnim);
+            }
+            return false;
+        };
+        if (startBtn != null) startBtn.setOnTouchListener(scaleTouchListener);
+        if (submitAnswerBtn != null) submitAnswerBtn.setOnTouchListener(scaleTouchListener);
+        if (homeBtn != null) homeBtn.setOnTouchListener(scaleTouchListener);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        displayUserLevel(intent);
+        Log.d(TAG, "onNewIntent: Level from intent: " + intent.getIntExtra("level", 1));
     }
 
     private void initViews() {
@@ -117,29 +139,52 @@ public class MainActivity extends AppCompatActivity {
         homeBtn = findViewById(R.id.homeBtn);
         accountBtn = findViewById(R.id.accountBtn);
         levelsBtn = findViewById(R.id.levelsBtn);
-
         resultText = findViewById(R.id.resultText);
         gradeText = findViewById(R.id.gradeText);
         timerProgress = findViewById(R.id.timerProgress);
         gradeEmoji = findViewById(R.id.gradeEmoji);
+        levelText = findViewById(R.id.levelText);
 
-        // Debug logging for null views
-        ;
         if (splashLayout == null) Log.e(TAG, "splashLayout is null");
         if (titleLayout == null) Log.e(TAG, "titleLayout is null");
         if (startBtn == null) Log.e(TAG, "startBtn is null");
         if (quizLayout == null) Log.e(TAG, "quizLayout is null");
         if (resultLayout == null) Log.e(TAG, "resultLayout is null");
         if (gradeEmoji == null) Log.e(TAG, "gradeEmoji is null");
+        if (levelText == null) Log.e(TAG, "levelText is null");
+    }
+
+    private void displayUserLevel(Intent intent) {
+        if (levelText == null) return;
+
+        int level = intent.getIntExtra("level", -1);
+        if (level == -1) {
+            SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+            int highestUnlockedLevel = 1;
+            for (int i = 1; i <= 10; i++) {
+                int passes = prefs.getInt("level" + i + "_passes", 0);
+                if (passes >= 3 || i == 1) {
+                    highestUnlockedLevel = i;
+                } else {
+                    break;
+                }
+            }
+            level = highestUnlockedLevel;
+        }
+        levelText.setText("Level " + level);
+        Log.d(TAG, "displayUserLevel: Level set to " + level);
     }
 
     private void showSplashScreen() {
         if (splashLayout != null) splashLayout.setVisibility(View.VISIBLE);
         if (titleLayout != null) titleLayout.setVisibility(View.GONE);
         if (startBtn != null) startBtn.setVisibility(View.GONE);
-        if (learnTopicsBtn != null) learnTopicsBtn.setVisibility(View.GONE);
         if (quizLayout != null) quizLayout.setVisibility(View.GONE);
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
+
+        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        if (splashLayout != null) splashLayout.startAnimation(fadeIn);
+        if (levelText != null) levelText.startAnimation(fadeIn);
 
         new CountDownTimer(3000, 100) {
             @Override
@@ -153,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
                 if (splashLayout != null) splashLayout.setVisibility(View.GONE);
                 if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
                 if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-                if (learnTopicsBtn != null) learnTopicsBtn.setVisibility(View.VISIBLE);
             }
         }.start();
     }
@@ -193,7 +237,6 @@ public class MainActivity extends AppCompatActivity {
             if (quizLayout != null) quizLayout.setVisibility(View.VISIBLE);
             if (titleLayout != null) titleLayout.setVisibility(View.GONE);
             if (startBtn != null) startBtn.setVisibility(View.GONE);
-            if (learnTopicsBtn != null) learnTopicsBtn.setVisibility(View.GONE);
             showNextQuestion();
         });
     }
@@ -322,8 +365,32 @@ public class MainActivity extends AppCompatActivity {
         if (percentage >= 80) {
             int passes = prefs.getInt("level" + level + "_passes", 0);
             if (passes < 3) {
+                editor.putInt("level" + level + "_passes", passes + 1);
             }
         }
+        editor.putInt("totalCorrect", prefs.getInt("totalCorrect", 0) + correctCount);
+        editor.apply();
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("totalScore", correctCount);
+            userData.put("lastQuizPercentage", percentage);
+            userData.put("level", level);
+            userData.put("timestamp", System.currentTimeMillis());
+
+            db.collection("users").document(user.getUid())
+                    .set(userData)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Quiz results saved to Firestore for user: " + user.getUid());
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to save quiz results: " + e.getMessage(), e);
+                        Toast.makeText(this, "Failed to save quiz results", Toast.LENGTH_SHORT).show();
+                    });
+        }
+
+        displayUserLevel(getIntent());
     }
 
     private void returnToStart() {
@@ -333,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
         if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
         if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-        if (learnTopicsBtn != null) learnTopicsBtn.setVisibility(View.VISIBLE);
+        displayUserLevel(getIntent());
     }
 
     @Override

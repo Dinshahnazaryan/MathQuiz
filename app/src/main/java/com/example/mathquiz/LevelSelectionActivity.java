@@ -1,20 +1,25 @@
 package com.example.mathquiz;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.IOException;
-import java.io.InputStream;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LevelSelectionActivity extends AppCompatActivity {
-
-    private static final int TOTAL_LEVELS = 10;
+    private static final String TAG = "LevelSelectionActivity";
+    private FirebaseAuth mAuth;
     private Button[] levelButtons;
 
     @Override
@@ -22,9 +27,24 @@ public class LevelSelectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_level_selection);
 
-        SharedPreferences prefs = getSharedPreferences("quizPrefs", Context.MODE_PRIVATE);
-        levelButtons = new Button[TOTAL_LEVELS];
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null || !currentUser.isEmailVerified()) {
+            Toast.makeText(this, "Please log in to continue", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
+        initializeButtons();
+        setupLevelButtons();
+        applyAnimations();
+    }
+
+    private void initializeButtons() {
+        levelButtons = new Button[10];
         levelButtons[0] = findViewById(R.id.level1Btn);
         levelButtons[1] = findViewById(R.id.level2Btn);
         levelButtons[2] = findViewById(R.id.level3Btn);
@@ -36,51 +56,66 @@ public class LevelSelectionActivity extends AppCompatActivity {
         levelButtons[8] = findViewById(R.id.level9Btn);
         levelButtons[9] = findViewById(R.id.level10Btn);
 
-        for (int i = 0; i < TOTAL_LEVELS; i++) {
-            final int level = i + 1;
-            Button button = levelButtons[i];
-
-            boolean unlocked = (level == 1) || (prefs.getInt("level" + (level - 1) + "_passes", 0) >= 3);
-
-            String imageUri = prefs.getString("level" + level + "_image", null);
-            if (imageUri != null) {
-                try {
-                    InputStream inputStream = getContentResolver().openInputStream(Uri.parse(imageUri));
-                    Drawable drawable = Drawable.createFromStream(inputStream, imageUri);
-                    inputStream.close();
-                    if (drawable != null) {
-                        button.setBackground(null);
-                        drawable.setBounds(0, 0, 100, 100);
-                        button.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
-                    } else {
-                        setDefaultDrawable(button, unlocked);
-                    }
-                } catch (IOException e) {
-                    setDefaultDrawable(button, unlocked);
-                }
-            } else {
-                setDefaultDrawable(button, unlocked);
+        for (Button btn : levelButtons) {
+            if (btn == null) {
+                Log.e(TAG, "One or more level buttons not found");
+                Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
+                finish();
+                return;
             }
+        }
+    }
 
-            button.setOnClickListener(v -> {
-                if (unlocked) {
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupLevelButtons() {
+        SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+        int highestUnlockedLevel = 1;
+
+        for (int i = 1; i <= 10; i++) {
+            int passes = prefs.getInt("level" + i + "_passes", 0);
+            if (passes >= 3 || i == 1) {
+                highestUnlockedLevel = Math.max(highestUnlockedLevel, i);
+            } else {
+                break;
+            }
+        }
+
+        for (int i = 0; i < levelButtons.length; i++) {
+            final int level = i + 1;
+            Button btn = levelButtons[i];
+            int passes = prefs.getInt("level" + level + "_passes", 0);
+            btn.setText(level + "\n" + passes + "/3");
+            if (level <= highestUnlockedLevel) {
+                btn.setEnabled(true);
+                btn.setAlpha(1.0f);
+                btn.setOnClickListener(v -> {
                     Intent intent = new Intent(LevelSelectionActivity.this, MainActivity.class);
                     intent.putExtra("level", level);
                     startActivity(intent);
-                } else {
-                    int passes = prefs.getInt("level" + (level - 1) + "_passes", 0);
-                    int remaining = Math.max(0, 3 - passes);
-                    String msg = "You need " + remaining + " more excellent completions on Level " + (level - 1) + " to unlock this level.";
-                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                });
+            } else {
+                btn.setEnabled(false);
+                btn.setAlpha(0.5f);
+                btn.setOnClickListener(v -> Toast.makeText(this, "Level " + level + " is locked", Toast.LENGTH_SHORT).show());
+            }
+            Log.d(TAG, "Level " + level + " enabled: " + btn.isEnabled());
+
+
+            Animation scaleAnim = AnimationUtils.loadAnimation(this, R.anim.scale_button);
+            btn.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    v.startAnimation(scaleAnim);
                 }
+                return false;
             });
         }
     }
 
-    private void setDefaultDrawable(Button button, boolean unlocked) {
-        Drawable drawable = getResources().getDrawable(unlocked ? R.drawable.ic_unlocked : R.drawable.ic_locked);
-        drawable.setBounds(0, 0, 60, 60);
-        button.setBackgroundResource(R.drawable.level_item_background);
-        button.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
+    private void applyAnimations() {
+        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        for (Button btn : levelButtons) {
+            btn.startAnimation(fadeIn);
+        }
+        findViewById(R.id.title).startAnimation(fadeIn);
     }
 }

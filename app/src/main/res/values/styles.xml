@@ -11,4 +11,6 @@
     <style name="AppToolbar" parent="Widget.AppCompat.Toolbar">
         <item name="navigationIconTint">#FFFFFF</item>
     </style>
+
+    <style name="TitleText"></style>
 </resources>

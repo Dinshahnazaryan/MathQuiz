@@ -1,15 +1,15 @@
 package com.example.mathquiz;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,278 +19,260 @@ import androidx.cardview.widget.CardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.Source;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AccountActivity extends AppCompatActivity {
     private static final String TAG = "AccountActivity";
-    private static final long MIN_CLICK_INTERVAL = 1000;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextView emailText, quizResultsText, passwordToggle, learnTopicsArrow;
-    private CardView passwordChangeLayout, learnTopicsContentLayout;
+    private TextView emailText, quizResultsText, achievementsText, passwordToggle;
     private EditText passwordInput;
-    private Button changePasswordBtn, backToStartBtn, signOutBtn, deleteAccountBtn;
+    private Button changePasswordBtn, backToStartBtn, signOutBtn, deleteAccountBtn, topicExplanationsBtn;
+    private CardView passwordChangeLayout;
+    private ProgressBar quizProgressBar;
     private long lastClickTime = 0;
+    private static final long CLICK_INTERVAL = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_account);
-            initializeFirebase();
-            initializeUI();
-            setupClickListeners();
-            loadUserData();
-        } catch (Exception e) {
-            Log.e(TAG, "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, "Account error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
+        setContentView(R.layout.activity_account);
 
-    private void initializeFirebase() {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build();
-        db.setFirestoreSettings(settings);
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null || !currentUser.isEmailVerified()) {
+            Toast.makeText(this, "Please log in to continue", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        initViews();
+        setupClickListeners();
+        displayUserData();
+        applyAnimations();
+
+        Animation scaleAnim = AnimationUtils.loadAnimation(this, R.anim.scale_button);
+        View.OnTouchListener scaleTouchListener = (v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                v.startAnimation(scaleAnim);
+            }
+            return false;
+        };
+        if (changePasswordBtn != null) changePasswordBtn.setOnTouchListener(scaleTouchListener);
+        if (backToStartBtn != null) backToStartBtn.setOnTouchListener(scaleTouchListener);
+        if (signOutBtn != null) signOutBtn.setOnTouchListener(scaleTouchListener);
+        if (deleteAccountBtn != null) deleteAccountBtn.setOnTouchListener(scaleTouchListener);
+        if (topicExplanationsBtn != null) topicExplanationsBtn.setOnTouchListener(scaleTouchListener);
     }
 
-    private void initializeUI() {
+    private void initViews() {
         emailText = findViewById(R.id.emailText);
         quizResultsText = findViewById(R.id.quizResultsText);
+        achievementsText = findViewById(R.id.achievementsText);
         passwordToggle = findViewById(R.id.passwordToggle);
-        passwordChangeLayout = findViewById(R.id.passwordChangeLayout);
         passwordInput = findViewById(R.id.passwordInput);
         changePasswordBtn = findViewById(R.id.changePasswordBtn);
         backToStartBtn = findViewById(R.id.backToStartBtn);
         signOutBtn = findViewById(R.id.signOutBtn);
         deleteAccountBtn = findViewById(R.id.deleteAccountBtn);
-        learnTopicsArrow = findViewById(R.id.learnTopicsArrow);
-        learnTopicsContentLayout = findViewById(R.id.learnTopicsContentLayout);
+        topicExplanationsBtn = findViewById(R.id.topicExplanationsBtn);
+        passwordChangeLayout = findViewById(R.id.passwordChangeLayout);
+        quizProgressBar = findViewById(R.id.quizProgressBar);
 
-        if (emailText == null || quizResultsText == null || passwordToggle == null ||
-                passwordChangeLayout == null || passwordInput == null || changePasswordBtn == null ||
+        if (emailText == null || quizResultsText == null || achievementsText == null ||
+                passwordToggle == null || passwordInput == null || changePasswordBtn == null ||
                 backToStartBtn == null || signOutBtn == null || deleteAccountBtn == null ||
-                learnTopicsArrow == null) {
-            Log.e(TAG, "One or more UI elements missing");
+                topicExplanationsBtn == null || passwordChangeLayout == null || quizProgressBar == null) {
+            Log.e(TAG, "One or more views not found");
             Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
     private void setupClickListeners() {
-        passwordToggle.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                passwordChangeLayout.setVisibility(
-                        passwordChangeLayout.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE
-                );
-                Log.d(TAG, "Password change layout toggled: " + passwordChangeLayout.getVisibility());
-            }
-        });
+        if (passwordToggle != null) {
+            passwordToggle.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    if (passwordChangeLayout.getVisibility() == View.VISIBLE) {
+                        passwordChangeLayout.setVisibility(View.GONE);
+                    } else {
+                        passwordChangeLayout.setVisibility(View.VISIBLE);
+                        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+                        passwordChangeLayout.startAnimation(fadeIn);
+                    }
+                    Log.d(TAG, "Password change layout toggled: " + passwordChangeLayout.getVisibility());
+                }
+            });
+        }
 
-        changePasswordBtn.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                changePassword(mAuth.getCurrentUser());
-            }
-        });
+        if (changePasswordBtn != null) {
+            changePasswordBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    String newPassword = passwordInput != null ? passwordInput.getText().toString().trim() : "";
+                    if (newPassword.length() < 6) {
+                        Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        user.updatePassword(newPassword)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                                    passwordChangeLayout.setVisibility(View.GONE);
+                                    passwordInput.setText("");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Password update failed: " + e.getMessage(), e);
+                                    Toast.makeText(this, "Password update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                });
+                    }
+                }
+            });
+        }
 
-        backToStartBtn.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-            }
-        });
+        if (backToStartBtn != null) {
+            backToStartBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                }
+            });
+        }
 
-        signOutBtn.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                mAuth.signOut();
-                Log.d(TAG, "User signed out");
-                Toast.makeText(this, "Signed out", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-            }
-        });
+        if (signOutBtn != null) {
+            signOutBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    mAuth.signOut();
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+        }
 
-        deleteAccountBtn.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                deleteAccount(mAuth.getCurrentUser());
-            }
-        });
+        if (deleteAccountBtn != null) {
+            deleteAccountBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        String userId = user.getUid();
+                        user.delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    db.collection("users").document(userId).delete()
+                                            .addOnSuccessListener(aVoid1 -> {
+                                                Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                                                Intent intent = new Intent(this, LoginActivity.class);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(intent);
+                                                finish();
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e(TAG, "Failed to delete user data: " + e.getMessage(), e);
+                                                Toast.makeText(this, "Failed to delete account data", Toast.LENGTH_LONG).show();
+                                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Account deletion failed: " + e.getMessage(), e);
+                                    Toast.makeText(this, "Account deletion failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                });
+                    }
+                }
+            });
+        }
 
-        learnTopicsArrow.setOnClickListener(v -> {
-            if (isClickAllowed()) {
-                Intent intent = new Intent(this, TopicExplanationActivity.class);
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void loadUserData() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            String email = user.getEmail() != null ? user.getEmail() : "No email";
-            emailText.setText("Email: " + email);
-            Log.d(TAG, "Displaying user email: " + email);
-            loadQuizResults(user.getUid());
-        } else {
-            Log.w(TAG, "No user signed in");
-            Toast.makeText(this, "No user signed in", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+        if (topicExplanationsBtn != null) {
+            topicExplanationsBtn.setOnClickListener(v -> {
+                if (isClickAllowed()) {
+                    Intent intent = new Intent(this, TopicExplanationActivity.class);
+                    startActivity(intent);
+                }
+            });
         }
     }
 
     private boolean isClickAllowed() {
-        long currentTime = SystemClock.elapsedRealtime();
-        if (currentTime - lastClickTime < MIN_CLICK_INTERVAL) {
-            Log.d(TAG, "Click blocked: too soon");
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastClickTime < CLICK_INTERVAL) {
             return false;
         }
         lastClickTime = currentTime;
         return true;
     }
 
-    private void loadQuizResults(String userId) {
-        try {
-            Log.d(TAG, "Attempting to load quiz results for user: " + userId);
-            Source source = isNetworkAvailable() ? Source.DEFAULT : Source.CACHE;
-            db.collection("users").document(userId).get(source)
-                    .addOnSuccessListener(documentSnapshot -> {
-                        Log.d(TAG, "Fetch success, document exists: " + documentSnapshot.exists());
-                        if (documentSnapshot.exists()) {
-                            Object scoreObj = documentSnapshot.get("totalScore");
-                            Log.d(TAG, "totalScore value: " + scoreObj);
-                            String results = formatScore(scoreObj);
-                            quizResultsText.setText("Quiz Results: " + results);
-                            Log.d(TAG, "Quiz results loaded: " + results);
-                        } else {
-                            Log.w(TAG, "No document for user: " + userId);
-                            quizResultsText.setText("Quiz Results: No data available");
-                            Toast.makeText(this, "No quiz results found. Try completing a quiz.", Toast.LENGTH_LONG).show();
+    private void displayUserData() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && emailText != null) {
+            emailText.setText("Email: " + user.getEmail());
+        }
+
+        db.collection("users").document(user != null ? user.getUid() : "")
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long totalScore = documentSnapshot.getLong("totalScore");
+                        Long lastQuizPercentage = documentSnapshot.getLong("lastQuizPercentage");
+                        Long level = documentSnapshot.getLong("level");
+
+                        if (quizResultsText != null) {
+                            String results = "Total Correct: " + (totalScore != null ? totalScore : 0) +
+                                    ", Last Quiz: " + (lastQuizPercentage != null ? lastQuizPercentage + "%" : "N/A") +
+                                    ", Level: " + (level != null ? level : 1);
+                            quizResultsText.setText(results);
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error loading quiz results: " + e.getMessage(), e);
-                        quizResultsText.setText("Quiz Results: Error");
-                        String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
-                        Toast.makeText(this, "Failed to load quiz results: " + errorMsg, Toast.LENGTH_LONG).show();
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in loadQuizResults: " + e.getMessage(), e);
-            quizResultsText.setText("Quiz Results: Error");
-            Toast.makeText(this, "Error loading quiz results: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
 
-    private String formatScore(Object scoreObj) {
-        if (scoreObj == null) {
-            Log.w(TAG, "totalScore is null");
-            return "No quiz results";
-        } else if (scoreObj instanceof Long) {
-            return "Total Score: " + scoreObj;
-        } else if (scoreObj instanceof Integer) {
-            return "Total Score: " + scoreObj;
-        } else if (scoreObj instanceof String) {
-            return "Total Score: " + scoreObj;
-        } else {
-            Log.w(TAG, "totalScore invalid type: " + scoreObj.getClass().getSimpleName());
-            return "No quiz results";
-        }
-    }
-
-    private void changePassword(FirebaseUser user) {
-        try {
-            if (user == null) {
-                Log.w(TAG, "No user signed in for password change");
-                Toast.makeText(this, "No user signed in", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            String newPassword = passwordInput.getText() != null ? passwordInput.getText().toString().trim() : "";
-            Log.d(TAG, "Attempting to change password for user: " + user.getEmail());
-
-            if (newPassword.isEmpty()) {
-                Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Empty password input");
-                return;
-            }
-
-            if (!newPassword.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
-                Toast.makeText(this, "Password must be 8+ chars with letters and numbers", Toast.LENGTH_LONG).show();
-                Log.w(TAG, "Invalid password format");
-                return;
-            }
-
-            if (!isNetworkAvailable()) {
-                Toast.makeText(this, "Password change requires internet. Please connect and try again.", Toast.LENGTH_LONG).show();
-                Log.w(TAG, "No network available for password change");
-                return;
-            }
-
-            user.updatePassword(newPassword)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "Password updated successfully");
-                            Toast.makeText(this, "Password updated", Toast.LENGTH_SHORT).show();
-                            passwordChangeLayout.setVisibility(View.GONE);
-                            passwordInput.setText("");
-                        } else {
-                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Log.e(TAG, "Failed to update password: " + errorMsg, task.getException());
-                            Toast.makeText(this, "Failed to update password: " + errorMsg, Toast.LENGTH_LONG).show();
+                        if (quizProgressBar != null && lastQuizPercentage != null) {
+                            quizProgressBar.setMax(100);
+                            quizProgressBar.setProgress(lastQuizPercentage.intValue());
                         }
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in changePassword: " + e.getMessage(), e);
-            Toast.makeText(this, "Error changing password: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
 
-    private void deleteAccount(FirebaseUser user) {
-        try {
-            if (user == null) {
-                Log.w(TAG, "No user signed in for account deletion");
-                Toast.makeText(this, "No user signed in", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if (!isNetworkAvailable()) {
-                Toast.makeText(this, "Account deletion requires internet. Please connect and try again.", Toast.LENGTH_LONG).show();
-                Log.w(TAG, "No network available for account deletion");
-                return;
-            }
-
-            user.delete()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "Account deleted successfully");
-                            Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(this, LoginActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                            Log.e(TAG, "Failed to delete account: " + errorMsg, task.getException());
-                            Toast.makeText(this, "Failed to delete account: " + errorMsg, Toast.LENGTH_LONG).show();
+                        if (achievementsText != null) {
+                            String achievements = "Achievements: ";
+                            if (totalScore != null && totalScore >= 50) {
+                                achievements += "Math Master (50+ correct)";
+                            } else if (totalScore != null && totalScore >= 20) {
+                                achievements += "Math Enthusiast (20+ correct)";
+                            } else {
+                                achievements += "No achievements yet";
+                            }
+                            achievementsText.setText(achievements);
                         }
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in deleteAccount: " + e.getMessage(), e);
-            Toast.makeText(this, "Error deleting account: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+                    } else {
+                        if (quizResultsText != null) {
+                            quizResultsText.setText("Quiz Results: No data");
+                        }
+                        if (achievementsText != null) {
+                            achievementsText.setText("Achievements: No achievements yet");
+                        }
+                        if (quizProgressBar != null) {
+                            quizProgressBar.setMax(100);
+                            quizProgressBar.setProgress(0);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to fetch user data: " + e.getMessage(), e);
+                    Toast.makeText(this, "Failed to load user data", Toast.LENGTH_LONG).show();
+                });
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isAvailable = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        Log.d(TAG, "Network available: " + isAvailable);
-        return isAvailable;
+    private void applyAnimations() {
+        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        findViewById(R.id.MenuTitle).startAnimation(fadeIn);
+        ((View) emailText.getParent().getParent()).startAnimation(fadeIn);
+        ((View) quizResultsText.getParent().getParent()).startAnimation(fadeIn);
+        ((View) passwordToggle.getParent().getParent()).startAnimation(fadeIn);
+        ((View) achievementsText.getParent().getParent()).startAnimation(fadeIn);
+        ((View) topicExplanationsBtn.getParent().getParent()).startAnimation(fadeIn);
+        ((View) backToStartBtn.getParent().getParent()).startAnimation(fadeIn);
+        ((View) signOutBtn.getParent().getParent()).startAnimation(fadeIn);
     }
 }
