@@ -261,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
         if (option2 != null) option2.setText(opts.get(1));
         if (option3 != null) option3.setText(opts.get(2));
         if (option4 != null) option4.setText(opts.get(3));
+        if (resultText != null) resultText.setText(""); // Clear resultText
         startQuestionTimer();
     }
 
@@ -281,8 +282,11 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
                 incorrectCount++;
                 if (resultText != null) {
-                    resultText.setText("Time's up! Correct: " + currentCorrectAnswer);
+                    resultText.setText("Time's up!");
+                    resultText.setTextColor(getResources().getColor(android.R.color.holo_red_light));
                 }
+                highlightCorrectAnswer();
+                highlightIncorrectAnswers();
                 currentQuestion++;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> showNextQuestion(), 2000);
             }
@@ -301,10 +305,18 @@ public class MainActivity extends AppCompatActivity {
         if (selectedAnswer.equals(currentCorrectAnswer)) {
             correctCount++;
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+            if (resultText != null) {
+                resultText.setText("Correct!");
+                resultText.setTextColor(getResources().getColor(android.R.color.holo_green_light));
+            }
         } else {
             incorrectCount++;
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
             highlightCorrectAnswer();
+            if (resultText != null) {
+                resultText.setText("Incorrect! Correct: " + currentCorrectAnswer);
+                resultText.setTextColor(getResources().getColor(android.R.color.holo_red_light));
+            }
         }
         currentQuestion++;
         new Handler(Looper.getMainLooper()).postDelayed(this::showNextQuestion, 2000);
@@ -336,6 +348,21 @@ public class MainActivity extends AppCompatActivity {
             option3.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
         } else if (option4 != null && option4.getText().toString().equals(currentCorrectAnswer)) {
             option4.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+        }
+    }
+
+    private void highlightIncorrectAnswers() {
+        if (option1 != null && !option1.getText().toString().equals(currentCorrectAnswer)) {
+            option1.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+        }
+        if (option2 != null && !option2.getText().toString().equals(currentCorrectAnswer)) {
+            option2.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+        }
+        if (option3 != null && !option3.getText().toString().equals(currentCorrectAnswer)) {
+            option3.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+        }
+        if (option4 != null && !option4.getText().toString().equals(currentCorrectAnswer)) {
+            option4.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
         }
     }
 
