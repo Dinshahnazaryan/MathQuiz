@@ -69,37 +69,21 @@ public class LevelSelectionActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void setupLevelButtons() {
         SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
-        int highestUnlockedLevel = 1;
-
-        for (int i = 1; i <= 10; i++) {
-            int passes = prefs.getInt("level" + i + "_passes", 0);
-            if (passes >= 3 || i == 1) {
-                highestUnlockedLevel = Math.max(highestUnlockedLevel, i);
-            } else {
-                break;
-            }
-        }
 
         for (int i = 0; i < levelButtons.length; i++) {
             final int level = i + 1;
             Button btn = levelButtons[i];
             int passes = prefs.getInt("level" + level + "_passes", 0);
             btn.setText(level + "\n" + passes + "/3");
-            if (level <= highestUnlockedLevel) {
-                btn.setEnabled(true);
-                btn.setAlpha(1.0f);
-                btn.setOnClickListener(v -> {
-                    Intent intent = new Intent(LevelSelectionActivity.this, MainActivity.class);
-                    intent.putExtra("level", level);
-                    startActivity(intent);
-                });
-            } else {
-                btn.setEnabled(false);
-                btn.setAlpha(0.5f);
-                btn.setOnClickListener(v -> Toast.makeText(this, "Level " + level + " is locked", Toast.LENGTH_SHORT).show());
-            }
+            // Enable all levels
+            btn.setEnabled(true);
+            btn.setAlpha(1.0f);
+            btn.setOnClickListener(v -> {
+                Intent intent = new Intent(LevelSelectionActivity.this, MainActivity.class);
+                intent.putExtra("level", level);
+                startActivity(intent);
+            });
             Log.d(TAG, "Level " + level + " enabled: " + btn.isEnabled());
-
 
             Animation scaleAnim = AnimationUtils.loadAnimation(this, R.anim.scale_button);
             btn.setOnTouchListener((v, event) -> {

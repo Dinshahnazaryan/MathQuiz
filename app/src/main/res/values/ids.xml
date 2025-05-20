@@ -59,4 +59,5 @@
     <item name="level9Btn" type="id" />
     <item name="level10Btn" type="id" />
     <item name="learnTopicsContentLayout" type="id" />
+    <item name="deleteProgressBar" type="id" />
 </resources>

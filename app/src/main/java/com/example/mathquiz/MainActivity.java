@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn, homeBtn;
-    private ImageButton accountBtn, levelsBtn;
+    private ImageButton accountBtn, levelsBtn, stopBtn; // Added stopBtn
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout quizLayout, resultLayout, titleLayout, splashLayout;
     private ImageView gradeEmoji;
@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         if (homeBtn != null) homeBtn.setOnClickListener(v -> returnToStart());
         if (accountBtn != null) accountBtn.setOnClickListener(v -> startActivity(new Intent(this, AccountActivity.class)));
         if (levelsBtn != null) levelsBtn.setOnClickListener(v -> startActivity(new Intent(this, LevelSelectionActivity.class)));
+        if (stopBtn != null) stopBtn.setOnClickListener(v -> returnToStart()); // Set stop button listener
 
         if (answerOptions != null) {
             answerOptions.setOnCheckedChangeListener((group, checkedId) -> {
@@ -111,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         if (startBtn != null) startBtn.setOnTouchListener(scaleTouchListener);
         if (submitAnswerBtn != null) submitAnswerBtn.setOnTouchListener(scaleTouchListener);
         if (homeBtn != null) homeBtn.setOnTouchListener(scaleTouchListener);
+        if (stopBtn != null) stopBtn.setOnTouchListener(scaleTouchListener); // Apply animation to stop button
     }
 
     @Override
@@ -139,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
         homeBtn = findViewById(R.id.homeBtn);
         accountBtn = findViewById(R.id.accountBtn);
         levelsBtn = findViewById(R.id.levelsBtn);
+        stopBtn = findViewById(R.id.stopBtn); // Initialize stop button
         resultText = findViewById(R.id.resultText);
         gradeText = findViewById(R.id.gradeText);
         timerProgress = findViewById(R.id.timerProgress);
@@ -152,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultLayout == null) Log.e(TAG, "resultLayout is null");
         if (gradeEmoji == null) Log.e(TAG, "gradeEmoji is null");
         if (levelText == null) Log.e(TAG, "levelText is null");
+        if (stopBtn == null) Log.e(TAG, "stopBtn is null"); // Log for stop button
     }
 
     private void displayUserLevel(Intent intent) {
@@ -181,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
         if (startBtn != null) startBtn.setVisibility(View.GONE);
         if (quizLayout != null) quizLayout.setVisibility(View.GONE);
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
 
         Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         if (splashLayout != null) splashLayout.startAnimation(fadeIn);
@@ -198,6 +203,9 @@ public class MainActivity extends AppCompatActivity {
                 if (splashLayout != null) splashLayout.setVisibility(View.GONE);
                 if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
                 if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
+                if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
+                if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
+                if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Ensure stop button is hidden
             }
         }.start();
     }
@@ -227,6 +235,11 @@ public class MainActivity extends AppCompatActivity {
         currentQuestion = 0;
         correctCount = 0;
         incorrectCount = 0;
+
+        // Hide account and levels buttons, show stop button
+        if (accountBtn != null) accountBtn.setVisibility(View.GONE);
+        if (levelsBtn != null) levelsBtn.setVisibility(View.GONE);
+        if (stopBtn != null) stopBtn.setVisibility(View.VISIBLE);
 
         loadQuizData(level, () -> {
             questionOrder = new ArrayList<>();
@@ -369,6 +382,9 @@ public class MainActivity extends AppCompatActivity {
     private void showResults() {
         if (quizLayout != null) quizLayout.setVisibility(View.GONE);
         if (resultLayout != null) resultLayout.setVisibility(View.VISIBLE);
+        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
+        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
         int percentage = (correctCount * 100) / questionOrder.size();
         if (gradeText != null) {
             gradeText.setText(percentage + "%\nCorrect: " + correctCount + "\nIncorrect: " + incorrectCount);
@@ -427,6 +443,9 @@ public class MainActivity extends AppCompatActivity {
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
         if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
         if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
+        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
+        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
         displayUserLevel(getIntent());
     }
 
