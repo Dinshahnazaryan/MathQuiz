@@ -51,8 +51,8 @@
 
     <ImageButton
         android:id="@+id/stopBtn"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:background="@null"
         android:contentDescription="Stop Quiz"
         android:padding="8dp"
@@ -201,7 +201,7 @@
             android:gravity="center"
             android:text=""
             android:textColor="#FFFFFF"
-            android:textSize="22sp"
+            android:textSize="28sp"
             android:fontFamily="sans-serif" />
 
         <RadioGroup

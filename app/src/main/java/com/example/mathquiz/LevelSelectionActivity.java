@@ -74,7 +74,7 @@ public class LevelSelectionActivity extends AppCompatActivity {
             final int level = i + 1;
             Button btn = levelButtons[i];
             int passes = prefs.getInt("level" + level + "_passes", 0);
-            btn.setText(level + "\n" + passes + "/3");
+            btn.setText(String.valueOf(level));
             // Enable all levels
             btn.setEnabled(true);
             btn.setAlpha(1.0f);
