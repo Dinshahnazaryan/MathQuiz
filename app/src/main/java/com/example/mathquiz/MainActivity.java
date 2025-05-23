@@ -38,13 +38,14 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup answerOptions;
     private RadioButton option1, option2, option3, option4;
     private Button submitAnswerBtn, startBtn, homeBtn;
-    private ImageButton accountBtn, levelsBtn, stopBtn; // Added stopBtn
+    private ImageButton accountBtn, levelsBtn, stopBtn;
     private ProgressBar timerProgress, splashProgress;
     private LinearLayout quizLayout, resultLayout, titleLayout, splashLayout;
     private ImageView gradeEmoji;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private CountDownTimer questionTimer;
+    private boolean isTestUser;
 
     private List<Integer> questionOrder;
     private int currentQuestion = -1;
@@ -74,8 +75,22 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Get isTestUser from Intent or SharedPreferences
+        isTestUser = getIntent().getBooleanExtra("isTestUser", false);
+        SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+        if (!isTestUser) {
+            isTestUser = prefs.getBoolean("isTestUser", false);
+        } else {
+            prefs.edit().putBoolean("isTestUser", isTestUser).apply();
+        }
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null || !currentUser.isEmailVerified()) {
+        String userEmail = currentUser != null ? currentUser.getEmail() : "null";
+        boolean isEmailVerified = currentUser != null && currentUser.isEmailVerified();
+        Log.d(TAG, "onCreate: isTestUser=" + isTestUser + ", userEmail=" + userEmail + ", isEmailVerified=" + isEmailVerified);
+
+        if (currentUser == null || (!isTestUser && !isEmailVerified)) {
+            Log.w(TAG, "Redirecting to LoginActivity: userEmail=" + userEmail + ", isTestUser=" + isTestUser + ", isEmailVerified=" + isEmailVerified);
             Toast.makeText(this, "Please log in to continue", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -91,9 +106,23 @@ public class MainActivity extends AppCompatActivity {
         if (startBtn != null) startBtn.setOnClickListener(v -> startQuiz());
         if (submitAnswerBtn != null) submitAnswerBtn.setOnClickListener(v -> submitAnswer());
         if (homeBtn != null) homeBtn.setOnClickListener(v -> returnToStart());
-        if (accountBtn != null) accountBtn.setOnClickListener(v -> startActivity(new Intent(this, AccountActivity.class)));
-        if (levelsBtn != null) levelsBtn.setOnClickListener(v -> startActivity(new Intent(this, LevelSelectionActivity.class)));
-        if (stopBtn != null) stopBtn.setOnClickListener(v -> returnToStart()); // Set stop button listener
+        if (accountBtn != null) {
+            accountBtn.setOnClickListener(v -> {
+                Log.d(TAG, "accountBtn clicked, navigating to AccountActivity, isTestUser=" + isTestUser);
+                Intent intent = new Intent(this, AccountActivity.class);
+                intent.putExtra("isTestUser", isTestUser);
+                startActivity(intent);
+            });
+        }
+        if (levelsBtn != null) {
+            levelsBtn.setOnClickListener(v -> {
+                Log.d(TAG, "levelsBtn clicked, navigating to LevelSelectionActivity, isTestUser=" + isTestUser);
+                Intent intent = new Intent(this, LevelSelectionActivity.class);
+                intent.putExtra("isTestUser", isTestUser);
+                startActivity(intent);
+            });
+        }
+        if (stopBtn != null) stopBtn.setOnClickListener(v -> returnToStart());
 
         if (answerOptions != null) {
             answerOptions.setOnCheckedChangeListener((group, checkedId) -> {
@@ -112,15 +141,18 @@ public class MainActivity extends AppCompatActivity {
         if (startBtn != null) startBtn.setOnTouchListener(scaleTouchListener);
         if (submitAnswerBtn != null) submitAnswerBtn.setOnTouchListener(scaleTouchListener);
         if (homeBtn != null) homeBtn.setOnTouchListener(scaleTouchListener);
-        if (stopBtn != null) stopBtn.setOnTouchListener(scaleTouchListener); // Apply animation to stop button
+        if (stopBtn != null) stopBtn.setOnTouchListener(scaleTouchListener);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        isTestUser = intent.getBooleanExtra("isTestUser", isTestUser);
+        SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+        prefs.edit().putBoolean("isTestUser", isTestUser).apply();
         displayUserLevel(intent);
-        Log.d(TAG, "onNewIntent: Level from intent: " + intent.getIntExtra("level", 1));
+        Log.d(TAG, "onNewIntent: Level from intent: " + intent.getIntExtra("level", 1) + ", isTestUser=" + isTestUser);
     }
 
     private void initViews() {
@@ -141,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         homeBtn = findViewById(R.id.homeBtn);
         accountBtn = findViewById(R.id.accountBtn);
         levelsBtn = findViewById(R.id.levelsBtn);
-        stopBtn = findViewById(R.id.stopBtn); // Initialize stop button
+        stopBtn = findViewById(R.id.stopBtn);
         resultText = findViewById(R.id.resultText);
         gradeText = findViewById(R.id.gradeText);
         timerProgress = findViewById(R.id.timerProgress);
@@ -155,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultLayout == null) Log.e(TAG, "resultLayout is null");
         if (gradeEmoji == null) Log.e(TAG, "gradeEmoji is null");
         if (levelText == null) Log.e(TAG, "levelText is null");
-        if (stopBtn == null) Log.e(TAG, "stopBtn is null"); // Log for stop button
+        if (stopBtn == null) Log.e(TAG, "stopBtn is null");
     }
 
     private void displayUserLevel(Intent intent) {
@@ -185,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         if (startBtn != null) startBtn.setVisibility(View.GONE);
         if (quizLayout != null) quizLayout.setVisibility(View.GONE);
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
-        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE);
 
         Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         if (splashLayout != null) splashLayout.startAnimation(fadeIn);
@@ -203,9 +235,9 @@ public class MainActivity extends AppCompatActivity {
                 if (splashLayout != null) splashLayout.setVisibility(View.GONE);
                 if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
                 if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-                if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
-                if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
-                if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Ensure stop button is hidden
+                if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
+                if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE);
+                if (stopBtn != null) stopBtn.setVisibility(View.GONE);
             }
         }.start();
     }
@@ -236,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
         correctCount = 0;
         incorrectCount = 0;
 
-        // Hide account and levels buttons, show stop button
         if (accountBtn != null) accountBtn.setVisibility(View.GONE);
         if (levelsBtn != null) levelsBtn.setVisibility(View.GONE);
         if (stopBtn != null) stopBtn.setVisibility(View.VISIBLE);
@@ -274,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
         if (option2 != null) option2.setText(opts.get(1));
         if (option3 != null) option3.setText(opts.get(2));
         if (option4 != null) option4.setText(opts.get(3));
-        if (resultText != null) resultText.setText(""); // Clear resultText
+        if (resultText != null) resultText.setText("");
         startQuestionTimer();
     }
 
@@ -382,9 +413,9 @@ public class MainActivity extends AppCompatActivity {
     private void showResults() {
         if (quizLayout != null) quizLayout.setVisibility(View.GONE);
         if (resultLayout != null) resultLayout.setVisibility(View.VISIBLE);
-        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
-        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
-        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
+        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
+        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE);
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE);
         int percentage = (correctCount * 100) / questionOrder.size();
         if (gradeText != null) {
             gradeText.setText(percentage + "%\nCorrect: " + correctCount + "\nIncorrect: " + incorrectCount);
@@ -424,9 +455,7 @@ public class MainActivity extends AppCompatActivity {
 
             db.collection("users").document(user.getUid())
                     .set(userData)
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Quiz results saved to Firestore for user: " + user.getUid());
-                    })
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Quiz results saved to Firestore for user: " + user.getUid()))
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to save quiz results: " + e.getMessage(), e);
                         Toast.makeText(this, "Failed to save quiz results", Toast.LENGTH_SHORT).show();
@@ -443,9 +472,9 @@ public class MainActivity extends AppCompatActivity {
         if (resultLayout != null) resultLayout.setVisibility(View.GONE);
         if (titleLayout != null) titleLayout.setVisibility(View.VISIBLE);
         if (startBtn != null) startBtn.setVisibility(View.VISIBLE);
-        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE); // Show account button
-        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE); // Show levels button
-        if (stopBtn != null) stopBtn.setVisibility(View.GONE); // Hide stop button
+        if (accountBtn != null) accountBtn.setVisibility(View.VISIBLE);
+        if (levelsBtn != null) levelsBtn.setVisibility(View.VISIBLE);
+        if (stopBtn != null) stopBtn.setVisibility(View.GONE);
         displayUserLevel(getIntent());
     }
 

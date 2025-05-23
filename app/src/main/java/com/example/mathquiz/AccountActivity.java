@@ -2,6 +2,7 @@ package com.example.mathquiz;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -32,6 +33,7 @@ public class AccountActivity extends AppCompatActivity {
     private ProgressBar quizProgressBar, deleteProgressBar;
     private long lastClickTime = 0;
     private static final long CLICK_INTERVAL = 1000;
+    private boolean isTestUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +43,19 @@ public class AccountActivity extends AppCompatActivity {
             mAuth = FirebaseAuth.getInstance();
             db = FirebaseFirestore.getInstance();
 
+            // Get isTestUser from Intent or SharedPreferences
+            isTestUser = getIntent().getBooleanExtra("isTestUser", false);
+            SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+            if (!isTestUser) {
+                isTestUser = prefs.getBoolean("isTestUser", false);
+            }
+
             FirebaseUser currentUser = mAuth.getCurrentUser();
-            if (currentUser == null || !currentUser.isEmailVerified()) {
+            String userEmail = currentUser != null ? currentUser.getEmail() : "null";
+            boolean isEmailVerified = currentUser != null && currentUser.isEmailVerified();
+            Log.d(TAG, "onCreate: isTestUser=" + isTestUser + ", userEmail=" + userEmail + ", isEmailVerified=" + isEmailVerified);
+
+            if (currentUser == null || (!isTestUser && !isEmailVerified)) {
                 Log.w(TAG, "No verified user found, redirecting to LoginActivity");
                 showMessage("Please log in to continue", false);
                 Intent intent = new Intent(this, LoginActivity.class);
@@ -157,6 +170,7 @@ public class AccountActivity extends AppCompatActivity {
                 if (isClickAllowed()) {
                     Log.d(TAG, "Navigating back to MainActivity");
                     Intent intent = new Intent(this, MainActivity.class);
+                    intent.putExtra("isTestUser", isTestUser);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 }
@@ -168,8 +182,10 @@ public class AccountActivity extends AppCompatActivity {
                 if (isClickAllowed()) {
                     Log.d(TAG, "Signing out user");
                     mAuth.signOut();
+                    SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+                    prefs.edit().remove("isTestUser").apply();
                     Intent intent = new Intent(this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
                 }
@@ -190,6 +206,7 @@ public class AccountActivity extends AppCompatActivity {
                 if (isClickAllowed()) {
                     Log.d(TAG, "Navigating to TopicExplanationActivity");
                     Intent intent = new Intent(this, TopicExplanationActivity.class);
+                    intent.putExtra("isTestUser", isTestUser);
                     startActivity(intent);
                 }
             });
@@ -233,6 +250,8 @@ public class AccountActivity extends AppCompatActivity {
                             .addOnSuccessListener(aVoid2 -> {
                                 Log.d(TAG, "Firestore data deleted successfully");
                                 showMessage("Account deleted successfully", false);
+                                SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+                                prefs.edit().remove("isTestUser").apply();
                                 Intent intent = new Intent(this, LoginActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
@@ -256,6 +275,8 @@ public class AccountActivity extends AppCompatActivity {
                             toastMessage = "Session expired. Please sign in again.";
                             Log.d(TAG, "Recent authentication required, redirecting to LoginActivity");
                             mAuth.signOut();
+                            SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+                            prefs.edit().remove("isTestUser").apply();
                             Intent intent = new Intent(this, LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
@@ -283,8 +304,9 @@ public class AccountActivity extends AppCompatActivity {
     private void displayUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null && emailText != null) {
-            emailText.setText("Email: " + user.getEmail());
-            Log.d(TAG, "Displaying user email: " + user.getEmail());
+            String displayEmail = isTestUser ? "individualproject2025@gmail.com" : user.getEmail();
+            emailText.setText("Email: " + displayEmail);
+            Log.d(TAG, "Displaying user email: Email: " + displayEmail);
         }
 
         String userId = user != null ? user.getUid() : "";

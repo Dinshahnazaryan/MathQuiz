@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
@@ -21,6 +20,7 @@ public class LevelSelectionActivity extends AppCompatActivity {
     private static final String TAG = "LevelSelectionActivity";
     private FirebaseAuth mAuth;
     private Button[] levelButtons;
+    private boolean isTestUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +28,15 @@ public class LevelSelectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_level_selection);
 
         mAuth = FirebaseAuth.getInstance();
+
+        isTestUser = getIntent().getBooleanExtra("isTestUser", false);
+        SharedPreferences prefs = getSharedPreferences("quizPrefs", MODE_PRIVATE);
+        if (!isTestUser) {
+            isTestUser = prefs.getBoolean("isTestUser", false);
+        }
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null || !currentUser.isEmailVerified()) {
+        if (currentUser == null || (!isTestUser && !currentUser.isEmailVerified())) {
             Toast.makeText(this, "Please log in to continue", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -58,7 +65,6 @@ public class LevelSelectionActivity extends AppCompatActivity {
 
         for (Button btn : levelButtons) {
             if (btn == null) {
-                Log.e(TAG, "One or more level buttons not found");
                 Toast.makeText(this, "UI initialization failed", Toast.LENGTH_LONG).show();
                 finish();
                 return;
@@ -75,15 +81,14 @@ public class LevelSelectionActivity extends AppCompatActivity {
             Button btn = levelButtons[i];
             int passes = prefs.getInt("level" + level + "_passes", 0);
             btn.setText(String.valueOf(level));
-            // Enable all levels
             btn.setEnabled(true);
             btn.setAlpha(1.0f);
             btn.setOnClickListener(v -> {
                 Intent intent = new Intent(LevelSelectionActivity.this, MainActivity.class);
                 intent.putExtra("level", level);
+                intent.putExtra("isTestUser", isTestUser);
                 startActivity(intent);
             });
-            Log.d(TAG, "Level " + level + " enabled: " + btn.isEnabled());
 
             Animation scaleAnim = AnimationUtils.loadAnimation(this, R.anim.scale_button);
             btn.setOnTouchListener((v, event) -> {

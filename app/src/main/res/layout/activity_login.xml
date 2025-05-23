@@ -8,12 +8,12 @@
     android:padding="16dp">
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -78,16 +78,16 @@
                         android:layout_marginTop="4dp"
                         android:autofillHints="emailAddress"
                         android:background="#F5F5F5"
-                        android:contentDescription="Email Input"
+                        android:contentDescription="Enter your email"
                         android:hint="Enter your email"
                         android:imeOptions="actionNext"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
-                        android:paddingHorizontal="12dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
                         android:textColor="#1A237E"
                         android:textColorHint="#B0B0B0"
-                        android:textSize="16sp"
-                        tools:ignore="EditableContentDescCheck" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -104,16 +104,16 @@
                         android:layout_marginTop="4dp"
                         android:autofillHints="password"
                         android:background="#F5F5F5"
-                        android:contentDescription="Password Input"
+                        android:contentDescription="Enter your password"
                         android:hint="Enter your password"
                         android:imeOptions="actionDone"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:paddingHorizontal="12dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
                         android:textColor="#1A237E"
                         android:textColorHint="#B0B0B0"
-                        android:textSize="16sp"
-                        tools:ignore="EditableContentDescCheck" />
+                        android:textSize="16sp" />
 
                     <ProgressBar
                         android:id="@+id/progressBar"
@@ -122,15 +122,15 @@
                         android:layout_marginTop="24dp"
                         android:layout_gravity="center"
                         android:visibility="gone"
-                        android:contentDescription="Progress Bar" />
+                        android:contentDescription="Loading progress" />
 
                     <Button
-                        android:id="@+id/loginButton"
+                        android:id="@+id/loginBtn"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="24dp"
                         android:background="@drawable/button_background"
-                        android:contentDescription="Log In Button"
+                        android:contentDescription="Log In"
                         android:text="Log In"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp" />
@@ -142,12 +142,12 @@
                         android:layout_marginTop="16dp"
                         android:layout_gravity="center"
                         android:clickable="true"
-                        android:contentDescription="Forgot Password Link"
+                        android:contentDescription="Forgot Password"
                         android:focusable="true"
+                        android:padding="8dp"
                         android:text="Forgot Password?"
                         android:textColor="#0288D1"
-                        android:textSize="16sp"
-                        tools:ignore="TouchTargetSizeCheck" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/registerText"
@@ -156,12 +156,24 @@
                         android:layout_marginTop="8dp"
                         android:layout_gravity="center"
                         android:clickable="true"
-                        android:contentDescription="Register Link"
+                        android:contentDescription="Register"
                         android:focusable="true"
+                        android:padding="8dp"
                         android:text="Don't have an account? Register"
                         android:textColor="#0288D1"
-                        android:textSize="16sp"
-                        tools:ignore="TouchTargetSizeCheck" />
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/testUserLoginBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/button_background"
+                        android:contentDescription="Test User Login"
+                        android:text="Test User Login"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp" />
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
