@@ -349,18 +349,12 @@ public class MainActivity extends AppCompatActivity {
         if (selectedAnswer.equals(currentCorrectAnswer)) {
             correctCount++;
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
-            if (resultText != null) {
-                resultText.setText("Correct!");
-                resultText.setTextColor(getResources().getColor(android.R.color.holo_green_light));
-            }
+
         } else {
             incorrectCount++;
             selectedOption.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
             highlightCorrectAnswer();
-            if (resultText != null) {
-                resultText.setText("Incorrect! Correct: " + currentCorrectAnswer);
-                resultText.setTextColor(getResources().getColor(android.R.color.holo_red_light));
-            }
+
         }
         currentQuestion++;
         new Handler(Looper.getMainLooper()).postDelayed(this::showNextQuestion, 2000);
